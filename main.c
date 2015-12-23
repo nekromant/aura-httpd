@@ -1,6 +1,7 @@
 #include <aura/aura.h>
 #include <getopt.h>
 #include <aura/private.h>
+#include <inttypes.h>
 
 enum opcode { 
 	OP_NONE,
@@ -103,6 +104,7 @@ static void dump_retbuf(const char *fmt, struct aura_buffer *buf)
 }
 
 
+
 static void do_listen_for_events(struct aura_node *n)
 {
 	const struct aura_object *o; 
@@ -122,11 +124,102 @@ static void do_listen_for_events(struct aura_node *n)
 
 }
 
-static void do_call_method(struct aura_node *n, const char *name, const char *cmdlineopts)
-{
-	
-}
 
+static void do_call_method(struct aura_node *n, const char *name, int argc, char *argv[])
+{
+	struct aura_buffer *retbuf;
+	struct aura_object *o = aura_etable_find(n->tbl, name);
+	if (!o) { 
+		slog(0, SLOG_ERROR, "Attempt to call some unknown method");
+	}
+	struct aura_buffer *buf = aura_buffer_request(n, o->arglen);	
+	if (!buf) { 
+		slog(0, SLOG_ERROR, "Memory allocation failed");
+	}
+	
+	const char *fmt = o->arg_fmt;
+	int i = 0;
+
+	if (!fmt)
+		return;
+
+	while (*fmt && (i < argc)) {
+		switch (*fmt++) { 
+		case URPC_U8: {
+			int a = atoi(argv[i]);
+			aura_buffer_put_u8(buf, a);
+			break;
+		}
+ 		case URPC_S8: {
+			int a = atoi(argv[i]);
+			aura_buffer_put_s8(buf, a);
+			break;
+		}
+		case URPC_U16: {
+			int a = atoi(argv[i]);
+			aura_buffer_put_u16(buf, a);
+			break;
+		}
+ 		case URPC_S16: {
+			int a = atoi(argv[i]);
+			aura_buffer_put_s16(buf, a);
+			break;
+		}
+		case URPC_U32: {
+			uint32_t a = atoll(argv[i]);
+			aura_buffer_put_u32(buf, a);
+			break;
+		}
+
+ 		case URPC_S32: {
+			uint32_t a = atoll(argv[i]);
+			aura_buffer_put_s32(buf, a);
+			break;
+		}
+
+		case URPC_U64: {
+			uint64_t a = atoll(argv[i]);
+			aura_buffer_put_u64(buf, a);
+			break;
+		}
+			
+ 		case URPC_S64: {
+			uint64_t a = atoll(argv[i]);
+			aura_buffer_put_s64(buf, a);
+			break;
+		}
+
+		case URPC_BUF:
+			slog(0, SLOG_WARN, "cli doesn't support passing buffers");
+			break;
+
+		case URPC_BIN: {
+			int tmp = atoi(fmt);
+			if (tmp == 0) 
+				BUG(NULL, "Internal serilizer bug processing: %s", fmt);
+			while (*fmt && (*fmt++ != '.'));
+			aura_buffer_put_bin(buf, argv[i], 
+					    tmp < strlen(argv[i]) ? tmp : strlen(argv[i]));
+			buf->pos+=tmp - strlen(argv[i]);
+			//FixMe: Hack...
+			break;
+		}
+
+		default:
+			BUG(NULL, "Serializer failed at token: %s", fmt); 
+		}
+		i++;
+	}
+	
+	int ret = aura_core_call(n, o, &retbuf, buf);
+	if (ret != 0) { 
+		slog(0, SLOG_ERROR, "Call of %s failed with %d", o->name, ret);
+		exit(0);
+	}
+	printf("result: ");
+	dump_retbuf(o->ret_fmt, retbuf);
+	printf("\n");
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -166,6 +259,7 @@ int main(int argc, char *argv[])
 		case 'c':
 			name = optarg;
 			op = OP_CALL;
+			c = -1; /* No more processing */
 			break;
 		case 'o':
 			topts = optarg;
@@ -177,6 +271,10 @@ int main(int argc, char *argv[])
 		default:
 			abort ();
 		}
+		
+		if (c == -1)
+			break;
+
 	}
 	
 	if (!tname) { 
@@ -184,7 +282,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	slog(0, SLOG_INFO, "start!");
+
 	struct aura_node *n = aura_open(tname, topts);
 	if (!n) 
 		exit(1);
@@ -194,7 +292,8 @@ int main(int argc, char *argv[])
 		do_listen_for_events(n);
 		break;
 	case OP_CALL:
-		do_call_method(n, name, NULL);
+		slog(4, SLOG_DEBUG, "Call argc %d opt_index %d optv %s", argc, optind, argv[optind]);
+		do_call_method(n, name, argc-optind, &argv[optind]);
 	}
 	aura_close(n);
 	return 0;
