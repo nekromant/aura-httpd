@@ -13,24 +13,28 @@ static int op;
 static struct option long_options[] =
 {
 	/* These options set a flag. */
-//	{"version", no_argument,       &verbose_flag, 1},
 	/* These options don’t set a flag.
 	   We distinguish them by their indices. */
 	{"list-transports",   no_argument,             0, 'L'  },
 	{"version",           no_argument,             0, 'v'  },
 	{"transport",         required_argument,       0, 't'  },
 	{"option",            required_argument,       0, 'o'  },
-	{"listen",            no_argument,             0, 'l'   },
+	{"listen",            no_argument,             0, 'l'  },
 	{"call",              required_argument,       0, 'c'  },
 	{"log-level",         required_argument,       0, 'z'  },
+	{"help",              no_argument,             0, 'h'  },
 	{0, 0, 0, 0}
 };
 
 void usage(char *self) { 
-	
+	printf("AURA Commandline Tool. (c) Necromant 2015\n");
+	printf("Usage: \n");
+	printf("       %s -v|--version\n", self);
+	printf("       %s -h|--help\n", self);
+	printf("       %s -L|--list-transports\n", self);
+	printf("       %s -t|--transport=name -o|--option=\"opts\" -l|--listen\n", self);
+	printf("       %s -t|--transport=name -o|--option=\"opts\" -c|--call methodname arg1 arg2 ...\n", self);
 }
-
-
 
 static void dump_retbuf(const char *fmt, struct aura_buffer *buf)
 {
@@ -231,6 +235,11 @@ int main(int argc, char *argv[])
 	const char *tname = NULL;
 	const char *topts = NULL;
 
+	if (argc == 1) {
+		usage(argv[0]);
+		exit(0);
+	}
+
 	while (1) { 
 		int c = getopt_long (argc, argv, "Llvt:c:z:o:",
 				     long_options, &option_index);
@@ -250,7 +259,13 @@ int main(int argc, char *argv[])
 			break;
 
 		case 'v':
-			printf("AURA Commandline Tool. Version 0.1 Using libaura (c) Necromant 2015\n");
+			printf("AURA Commandline Tool. (c) Necromant 2015\n");
+			printf("libaura version %s (numeric %u)\n", 
+			       aura_get_version(), aura_get_version_code());
+			exit(0);
+			break;
+		case 'h':
+			usage(argv[0]);
 			exit(0);
 			break;
 		case 'z':
@@ -269,6 +284,7 @@ int main(int argc, char *argv[])
 			break;
 
 		default:
+			printf("Captain Obvious to the rescue: Run %s --help to get help\n", argv[0]);
 			abort ();
 		}
 		
@@ -278,7 +294,8 @@ int main(int argc, char *argv[])
 	}
 	
 	if (!tname) { 
-		slog(0, SLOG_ERROR, "Can't do anything without a transport name");
+		printf("Can't do anything without a transport name\n");
+		printf("Captain Obvious to the rescue: Run %s --help to get help\n", argv[0]);
 		exit(1);
 	}
 
