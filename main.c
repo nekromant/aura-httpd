@@ -1,318 +1,128 @@
 #include <aura/aura.h>
-#include <getopt.h>
-#include <aura/private.h>
-#include <inttypes.h>
+#include <evhttp.h>
+#include <json.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <aura-httpd/utils.h>
 
-enum opcode { 
-	OP_NONE,
-	OP_LISTEN,
-	OP_CALL,
-};
 
-static int op;
-static struct option long_options[] =
-{
-	/* These options set a flag. */
-	/* These options don’t set a flag.
-	   We distinguish them by their indices. */
-	{"list-transports",   no_argument,             0, 'L'  },
-	{"version",           no_argument,             0, 'v'  },
-	{"transport",         required_argument,       0, 't'  },
-	{"option",            required_argument,       0, 'o'  },
-	{"listen",            no_argument,             0, 'l'  },
-	{"call",              required_argument,       0, 'c'  },
-	{"log-level",         required_argument,       0, 'z'  },
-	{"help",              no_argument,             0, 'h'  },
-	{0, 0, 0, 0}
-};
-
-void usage(char *self) { 
-	printf("AURA Commandline Tool. (c) Necromant 2015\n");
-	printf("Usage: \n");
-	printf("       %s -v|--version\n", self);
-	printf("       %s -h|--help\n", self);
-	printf("       %s -L|--list-transports\n", self);
-	printf("       %s -t|--transport=name -o|--option=\"opts\" -l|--listen\n", self);
-	printf("       %s -t|--transport=name -o|--option=\"opts\" -c|--call methodname arg1 arg2 ...\n", self);
+static void notfound (struct evhttp_request *request, void *params) {
+	slog(1, SLOG_INFO, "ERROR 404");
+	evhttp_send_error(request, HTTP_NOTFOUND, "Not Found"); 
 }
 
-static void dump_retbuf(const char *fmt, struct aura_buffer *buf)
+static char *host = "127.0.0.1";
+static int  port = 8088;
+
+
+
+void load_mountpoint(struct event_base *ebase, struct evhttp *eserver, json_object *opts)
 {
-	if (!fmt)
+	const char *mp = json_find_string(opts, "mountpoint");
+	const char *tp = json_find_string(opts, "type");
+
+	if ((tp == NULL) || (mp == NULL)) { 
+		slog(0, SLOG_WARN, "Misconfigurated node section, skipping");
 		return;
-
-	while (*fmt) {
-		switch (*fmt++) { 
-		case URPC_U8: {
-			uint8_t a = aura_buffer_get_u8(buf);
-			printf(" %u ", a);
-			break;
-		}
- 		case URPC_S8: {
-			int8_t a = aura_buffer_get_s8(buf);
-			printf(" %d ", a);
-			break;
-		}
-		case URPC_U16: {
-			int16_t a = aura_buffer_get_u16(buf);
-			printf(" %u ", a);
-			break;
-		}
- 		case URPC_S16: {
-			int16_t a = aura_buffer_get_s16(buf);
-			printf(" %d ", a);
-			break;
-		}
-		case URPC_U32: {
-			uint32_t a = aura_buffer_get_u32(buf);
-			printf(" %u ", a);
-			break;
-		}
-
- 		case URPC_S32: {
-			int32_t a = aura_buffer_get_s32(buf);
-			printf(" %d ", a);
-			break;
-		}
-
-		case URPC_U64: {
-			uint64_t a = aura_buffer_get_u64(buf);
-			printf(" %lu ", a);
-			break;
-		}
-			
- 		case URPC_S64: {
-			int64_t a = aura_buffer_get_s64(buf);
-			printf(" %ld ", a);
-			break;
-		}
-
-		case URPC_BUF:
-			printf( " buf(0x%lx) ", aura_buffer_get_u64(buf));
-			// TODO: Printout buffer here
-			break;
-
-		case URPC_BIN: {
-			int tmp = atoi(fmt);
-			if (tmp == 0) 
-				BUG(NULL, "Internal serilizer bug processing: %s", fmt);
-			while (*fmt && (*fmt++ != '.'));
-			printf(" bin(%d) ", tmp);
-			break;
-		}
-
-		default:
-			BUG(NULL, "Serializer failed at token: %s", fmt); 
-		}
 	}
-}
 
+	slog(1, SLOG_INFO, "Mounting %s at %s", 
+	     tp, 
+	     mp);
+	
+	if (strcmp(tp, "control") == 0) 
+		ahttpd_mount_control(ebase, eserver, opts);
+	if (strcmp(tp, "node") == 0) 
+		ahttpd_mount_node(ebase, eserver, opts);
 
-
-static void do_listen_for_events(struct aura_node *n)
-{
-	const struct aura_object *o; 
-	struct aura_buffer *buf;
-	int ret; 
-
-	aura_enable_sync_events(n, 10); 
-
-	while (1) { 		
-		ret = aura_get_next_event(n, &o, &buf); 
-		if (ret != 0)
-			BUG(n, "Failed to read next event");
-		printf("event: %s | ", o->name);
-		dump_retbuf(o->ret_fmt, buf);
-		printf("\n");
-	}
+	//else if (strcmp(tp, "control") == 0)
 
 }
 
-
-static void do_call_method(struct aura_node *n, const char *name, int argc, char *argv[])
+void load_mountpoints(struct event_base *ebase, struct evhttp *eserver, json_object *fstab)
 {
-	struct aura_buffer *retbuf;
-	struct aura_object *o = aura_etable_find(n->tbl, name);
-	if (!o) { 
-		slog(0, SLOG_ERROR, "Attempt to call some unknown method");
+	slog(4, SLOG_DEBUG, "Loading mountpoints");
+	int i;
+	int num = json_object_array_length(fstab);
+	for (i=0; i<num; i++) { 
+		json_object *j =  json_object_array_get_idx(fstab, i);
+		load_mountpoint(ebase, eserver, j);
 	}
-	struct aura_buffer *buf = aura_buffer_request(n, o->arglen);	
-	if (!buf) { 
-		slog(0, SLOG_ERROR, "Memory allocation failed");
-	}
-	
-	const char *fmt = o->arg_fmt;
-	int i = 0;
-
-	if (!fmt)
-		return;
-
-	while (*fmt && (i < argc)) {
-		switch (*fmt++) { 
-		case URPC_U8: {
-			int a = atoi(argv[i]);
-			aura_buffer_put_u8(buf, a);
-			break;
-		}
- 		case URPC_S8: {
-			int a = atoi(argv[i]);
-			aura_buffer_put_s8(buf, a);
-			break;
-		}
-		case URPC_U16: {
-			int a = atoi(argv[i]);
-			aura_buffer_put_u16(buf, a);
-			break;
-		}
- 		case URPC_S16: {
-			int a = atoi(argv[i]);
-			aura_buffer_put_s16(buf, a);
-			break;
-		}
-		case URPC_U32: {
-			uint32_t a = atoll(argv[i]);
-			aura_buffer_put_u32(buf, a);
-			break;
-		}
-
- 		case URPC_S32: {
-			uint32_t a = atoll(argv[i]);
-			aura_buffer_put_s32(buf, a);
-			break;
-		}
-
-		case URPC_U64: {
-			uint64_t a = atoll(argv[i]);
-			aura_buffer_put_u64(buf, a);
-			break;
-		}
-			
- 		case URPC_S64: {
-			uint64_t a = atoll(argv[i]);
-			aura_buffer_put_s64(buf, a);
-			break;
-		}
-
-		case URPC_BUF:
-			slog(0, SLOG_WARN, "cli doesn't support passing buffers");
-			break;
-
-		case URPC_BIN: {
-			int tmp = atoi(fmt);
-			if (tmp == 0) 
-				BUG(NULL, "Internal serilizer bug processing: %s", fmt);
-			while (*fmt && (*fmt++ != '.'));
-			aura_buffer_put_bin(buf, argv[i], 
-					    tmp < strlen(argv[i]) ? tmp : strlen(argv[i]));
-			buf->pos+=tmp - strlen(argv[i]);
-			//FixMe: Hack...
-			break;
-		}
-
-		default:
-			BUG(NULL, "Serializer failed at token: %s", fmt); 
-		}
-		i++;
-	}
-	
-	int ret = aura_core_call(n, o, &retbuf, buf);
-	if (ret != 0) { 
-		slog(0, SLOG_ERROR, "Call of %s failed with %d", o->name, ret);
-		exit(0);
-	}
-	printf("result: ");
-	dump_retbuf(o->ret_fmt, retbuf);
-	printf("\n");
 }
 
-int main(int argc, char *argv[]) 
+void parse_config(struct event_base *ebase, struct evhttp *eserver, const char *filename)
 {
-	slog_init(NULL, 0);
-
-	int option_index = 0;
-
-	const char *name  = NULL; 
-	const char *tname = NULL;
-	const char *topts = NULL;
-
-	if (argc == 1) {
-		usage(argv[0]);
-		exit(0);
-	}
-
-	while (1) { 
-		int c = getopt_long (argc, argv, "Llvt:c:z:o:",
-				     long_options, &option_index);
-
-		/* Detect the end of the options. */
-		if (c == -1)
-			break;
-
-		switch (c)
-		{
-		case 'L':
-			aura_transport_dump_usage();
-			exit(0);
-			break;
-		case 'l':
-			op = OP_LISTEN;
-			break;
-
-		case 'v':
-			printf("AURA Commandline Tool. (c) Necromant 2015\n");
-			printf("libaura version %s (numeric %u)\n", 
-			       aura_get_version(), aura_get_version_code());
-			exit(0);
-			break;
-		case 'h':
-			usage(argv[0]);
-			exit(0);
-			break;
-		case 'z':
-			slog_init(NULL, atoi(optarg));
-			break;
-		case 'c':
-			name = optarg;
-			op = OP_CALL;
-			c = -1; /* No more processing */
-			break;
-		case 'o':
-			topts = optarg;
-			break;
-		case 't':
-			tname = optarg;
-			break;
-
-		default:
-			printf("Captain Obvious to the rescue: Run %s --help to get help\n", argv[0]);
-			abort ();
-		}
-		
-		if (c == -1)
-			break;
-
-	}
-	
-	if (!tname) { 
-		printf("Can't do anything without a transport name\n");
-		printf("Captain Obvious to the rescue: Run %s --help to get help\n", argv[0]);
+	struct stat st;
+	slog(1, SLOG_DEBUG, "Reading config: %s", filename);
+	if ((stat(filename, &st) == -1) || S_ISDIR(st.st_mode) ) {
+		slog(0, SLOG_ERROR, "Config file %s doesn't exist");
 		exit(1);
 	}
-
-
-	struct aura_node *n = aura_open(tname, topts);
-	if (!n) 
+	
+	int file_size = st.st_size;
+	char *buf = calloc(1, file_size + 1);
+	FILE *fd = fopen(filename, "r");
+	if (!fd) 
+		BUG(NULL, "Failed to open config file");
+	if (1 != fread(buf, file_size, 1, fd))
+		BUG(NULL, "Failed to read config file");
+	
+	enum json_tokener_error error =  json_tokener_success;
+	json_object *conf = json_tokener_parse_verbose(buf, &error);
+	if (error != json_tokener_success) { 
+		slog(0, SLOG_ERROR, "Problem parsing config file");
 		exit(1);
-
-	switch (op) { 
-	case OP_LISTEN:
-		do_listen_for_events(n);
-		break;
-	case OP_CALL:
-		slog(4, SLOG_DEBUG, "Call argc %d opt_index %d optv %s", argc, optind, argv[optind]);
-		do_call_method(n, name, argc-optind, &argv[optind]);
 	}
-	aura_close(n);
+	
+	enum json_type type;
+	json_object_object_foreach(conf, key, val) {
+		type = json_object_get_type(val);
+		switch (type) {
+		case json_type_string: 
+			if (strcmp(key, "host")==0)
+				host = strdup(json_object_get_string(val));
+			break;
+		case json_type_int:
+			if (strcmp(key, "port")==0)
+				port = json_object_get_int(val);
+			break;
+		case json_type_array:
+			if (strcmp(key, "mountpoints")==0) {
+				slog(0, SLOG_DEBUG, "%s ", key);
+				load_mountpoints(ebase, eserver, val);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	slog(1, SLOG_DEBUG, "Serving at %s:%d", host, port);
+	json_object_put(conf);
+	free(buf);
+}
+
+int main (void) {
+	struct event_base *ebase;
+	struct evhttp *server;
+
+	slog_init(NULL, 99);
+
+	ebase = event_base_new ();
+	server = evhttp_new (ebase);
+	evhttp_set_allowed_methods (server, EVHTTP_REQ_GET);
+	parse_config(ebase, server, "config.json");
+	evhttp_set_gencb (server, notfound, 0);
+
+	if (evhttp_bind_socket (server, host, port) != 0) {
+		BUG(NULL, "I tried hard, but I could not bind to %s:%d, sorry(");
+	}
+
+	event_base_dispatch(ebase);
+	evhttp_free (server);
+	event_base_free (ebase);
 	return 0;
 }
 

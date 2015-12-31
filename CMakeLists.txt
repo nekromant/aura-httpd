@@ -1,27 +1,37 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-PROJECT(auracli)
+PROJECT(aurahttpd)
 SET(PROJECT_VERSION   0.1.2)
 enable_testing()
 
-SET(SRCS main.c)
+SET(SRCS 
+  main.c
+  utils.c
+  mp_control.c
+  mp_node.c
+)
 
 FIND_PACKAGE(PkgConfig)
 PKG_CHECK_MODULES(AURA REQUIRED aura)
+PKG_CHECK_MODULES(LIBEVENT REQUIRED libevent)
+PKG_CHECK_MODULES(JSON REQUIRED json-c)
 
-SET(CMAKE_C_FLAGS "-Wall -Werror")
+SET(CMAKE_C_FLAGS "-Wall -g")
 
 INCLUDE_DIRECTORIES(
     ${AURA_INCLUDE_DIRS}
+    ${LIBEVENT_INCLUDE_DIRS}
+    ${JSON_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/include
 )
 
-ADD_EXECUTABLE(auracli ${SRCS})
+ADD_EXECUTABLE(aurahttpd ${SRCS})
 
-TARGET_LINK_LIBRARIES(auracli
+TARGET_LINK_LIBRARIES(aurahttpd
     ${AURA_LIBRARIES}
+    ${LIBEVENT_LIBRARIES}
+    ${JSON_LIBRARIES}
 )
 
-add_test(dummy_echo ./auracli -z 90 -t dummy -c echo_u16 678)
-
-INSTALL(TARGETS auracli
+INSTALL(TARGETS aurahttpd
         DESTINATION bin)
