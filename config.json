@@ -1,0 +1,21 @@
+{
+	"host": "127.0.0.1",
+	"port": 8088,
+	"mountpoints": [
+		 {
+		   "type": "control",
+		   "mountpoint": "/control",
+		 },
+		 { 
+		   "type": "node",
+		   "mountpoint": "/pickme",
+		   "transport":  "dummy",
+		   "options": "blah",
+		 },
+		 { 
+		   "type": "static",
+		   "mountpoint": "/",
+		   "dir": "../www",
+		 },
+	]
+}
