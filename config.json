@@ -13,6 +13,13 @@
 		   "options": "blah",
 		 },
 		 { 
+		   "type": "node",
+		   "mountpoint": "/usb",
+		   "transport":  "simpleusb",
+		   "options": "/home/necromant/.simpleusbconfigs/pw-ctl.conf",
+		 },
+
+		 { 
 		   "type": "static",
 		   "mountpoint": "/",
 		   "dir": "../www",

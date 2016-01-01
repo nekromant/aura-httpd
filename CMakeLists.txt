@@ -5,10 +5,11 @@ SET(PROJECT_VERSION   0.1.2)
 enable_testing()
 
 SET(SRCS 
-  main.c
+  vfs.c
   utils.c
-  mp_control.c
-  mp_node.c
+  main.c
+  fs_control.c
+  fs_node.c
 )
 
 FIND_PACKAGE(PkgConfig)

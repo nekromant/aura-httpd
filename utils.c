@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <aura-httpd/utils.h>
 
-
 struct json_object *json_find(json_object *arr, char *k)
 {
 	json_object_object_foreach(arr, key, val) {
@@ -20,23 +19,34 @@ struct json_object *json_find(json_object *arr, char *k)
 
 const char *json_find_string(json_object *o, char *k)
 {
-	json_object *tmp = json_find(o, "mountpoint");
+	json_object *tmp = json_find(o, k);
 	if (!tmp)
 		return NULL;
 	return json_object_get_string(tmp); 	
 }
 
-void ahttpd_mount(struct evhttp *eserver, const char *mountpoint, const char *path, 
-		  void (*cb)(struct evhttp_request *request, void *privParams), void *arg)
+
+void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path, 
+			void (*cb)(struct evhttp_request *request, void *privParams), void *arg)
 {
 	char *str; 
-	// TODO: Trailing slashes!
-	int ret = asprintf(&str, "%s/%s", mountpoint, path);
+	int ret = asprintf(&str, "%s%s", mpoint->mountpoint, path);
+	if (ret == -1)
+		BUG(NULL, "asprintf() failed!");
+	slog(4, SLOG_DEBUG, "Adding path %s ", str);
+	evhttp_set_cb (mpoint->server->eserver, str, cb, arg);
+	free(str);	
+}
+
+void ahttpd_del_path(struct ahttpd_mountpoint *mpoint, const char *path)
+{
+	char *str; 
+	int ret = asprintf(&str, "%s/%s", mpoint->mountpoint, path);
 	if (ret == -1)
 		BUG(NULL, "asprintf() failed!");
 
-	evhttp_set_cb (eserver, str, cb, arg);
-	free(str);	
+	evhttp_del_cb (mpoint->server->eserver, str);
+	free(str);		
 }
 
 void ahttpd_reply_with_json(struct evhttp_request *request, json_object *o)
@@ -45,7 +55,7 @@ void ahttpd_reply_with_json(struct evhttp_request *request, json_object *o)
 	const char *str = json_object_to_json_string(o);
 	evbuffer_add(buffer, str, strlen(str)); 
 	evhttp_add_header (evhttp_request_get_output_headers (request),
-			"Content-Type", "text/plain");
+			"Content-Type", "application/json");
 	evhttp_send_reply(request, HTTP_OK, "OK", buffer);
 	evbuffer_free (buffer);
 }
