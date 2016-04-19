@@ -1,7 +1,9 @@
 #ifndef AURAHTTPD_UTILS_H
 #define AURAHTTPD_UTILS_H
 
+#include <aura/aura.h>
 #include <aura/list.h>
+#include <json.h>
 
 #define AHTTPD_FS(s)						   \
         void __attribute__((constructor (101))) do_reg_##s(void) { \
@@ -10,7 +12,7 @@
 
 struct ahttpd_mountpoint;
 
-struct ahttpd_server { 
+struct ahttpd_server {
 	struct evhttp          *eserver;
 	struct event_base      *ebase;
 	struct aura_eventloop  *aloop;
@@ -25,6 +27,7 @@ struct ahttpd_fs {
 	int   fsdatalen;
 	void (*mount)(struct ahttpd_mountpoint *mpoint);
 	void (*unmount)(struct ahttpd_mountpoint *mpoint);
+	void (*route)(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint);
 	struct list_head qentry;
 };
 
@@ -45,7 +48,7 @@ struct json_object *json_find(json_object *arr, char *k);
 const char *json_find_string(json_object *o, char *k);
 
 
-void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path, 
+void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path,
 		     void (*cb)(struct evhttp_request *request, void *privParams), void *arg);
 
 void ahttpd_del_path(struct ahttpd_mountpoint *mpoint, const char *path);

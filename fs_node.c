@@ -20,7 +20,7 @@ static void etbl_changed_cb(struct aura_node *node, struct aura_export_table *ol
 
 void fd_changed_cb(const struct aura_pollfds *fd, enum aura_fd_action act, void *arg)
 {
-	slog(4, SLOG_DEBUG, "Descriptor change event %d", act);
+	slog(4, SLOG_DEBUG, "Descriptor change event from node %d", act);
 }
 
 static void node_mount(struct ahttpd_mountpoint *mpoint)
@@ -41,13 +41,7 @@ static void node_mount(struct ahttpd_mountpoint *mpoint)
 	}
 
 	aura_fd_changed_cb(node, fd_changed_cb, mpoint);
-
-	if (!mpoint->server->aloop) { 
-		slog(1, SLOG_DEBUG, "Creating aura eventsystem for server");
-		mpoint->server->aloop = aura_eventloop_create(node);
-		if (!mpoint->server->aloop)
-			BUG(node, "Eventloop creation failed");
-	}
+	
 }
 
 static void node_unmount(struct ahttpd_mountpoint *mpoint)
