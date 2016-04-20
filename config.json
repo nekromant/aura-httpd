@@ -23,7 +23,7 @@
 		   "mountpoint": "/static/",
 		   "dir": "../www",
 		   "index": "index.html2",
-		   "dirindex": "html",
+		   "dirlist": "html",
 		 },
 	]
 }

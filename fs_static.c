@@ -173,7 +173,7 @@ static void cfs_mount(struct ahttpd_mountpoint *mpoint)
 
 	fsd->htdocs          = strdup(json_find_string(mpoint->props, "dir"));
 	fsd->index           = json_find_string(mpoint->props, "index");
-	const char *dirindex = json_find_string(mpoint->props, "dirindex");
+	const char *dirindex = json_find_string(mpoint->props, "dirlist");
 
 	if (fsd->htdocs[strlen(fsd->htdocs)-1]=='/')
 		fsd->htdocs[strlen(fsd->htdocs)-1]=0x0;
