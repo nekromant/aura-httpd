@@ -76,9 +76,12 @@ static void generic_route (struct evhttp_request *request, void *params)
 	struct ahttpd_server *server = params;
 	struct list_head *h = &server->mountpoints;
 	struct ahttpd_mountpoint *pos;
-        list_for_each_entry(pos, h, qentry) {
+	slog(4, SLOG_DEBUG, "Request: %s", uri);
+    list_for_each_entry(pos, h, qentry) {
 		if (strncmp(uri, pos->mountpoint, strlen(pos->mountpoint))==0)
 			if (pos->fs->route) {
+				slog(4, SLOG_DEBUG, "Routing URI %s to mpoint %s",
+					uri, pos->mountpoint);
 				pos->fs->route(request, pos);
 				return;
 			}
@@ -91,13 +94,13 @@ static void generic_route (struct evhttp_request *request, void *params)
 int main (void) {
 	slog_init(NULL, 99);
 
-
 	struct ahttpd_server *server = calloc(1, sizeof(*server));
 	if (!server)
 		BUG(NULL, "Calloc() failed");
 
 	server->port    = 32001;
 	server->host    = "127.0.0.1";
+	/* TODO: Or should we move all http processing to a separate thread? */
 	server->aloop   = aura_eventloop_create_empty();
 	server->ebase   = aura_eventloop_get_ebase(server->aloop);
 	server->eserver = evhttp_new (server->ebase);

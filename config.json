@@ -6,23 +6,24 @@
 		   "type": "control",
 		   "mountpoint": "/control",
 		 },
-		 { 
+		 {
 		   "type": "node",
 		   "mountpoint": "/pickme",
 		   "transport":  "dummy",
 		   "options": "blah",
 		 },
-		 { 
+		 {
 		   "type": "node",
 		   "mountpoint": "/usb",
 		   "transport":  "simpleusb",
 		   "options": "/home/necromant/.simpleusbconfigs/pw-ctl.conf",
 		 },
-
-		 { 
+		 {
 		   "type": "static",
-		   "mountpoint": "/",
+		   "mountpoint": "/static/",
 		   "dir": "../www",
+		   "index": "index.html2",
+		   "dirindex": "html",
 		 },
 	]
 }
