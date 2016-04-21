@@ -11,6 +11,7 @@ SET(SRCS
   fs_control.c
   fs_node.c
   fs_static.c
+#  fs_memcache.c
 )
 
 FIND_PACKAGE(PkgConfig)
@@ -32,6 +33,10 @@ get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTO
 file(WRITE ${CMAKE_SOURCE_DIR}/.clang_complete "")
 foreach(dir ${dirs})
   file(APPEND ${CMAKE_SOURCE_DIR}/.clang_complete "-I${dir}\n")
+endforeach()
+string(REPLACE " " ";" CMAKE_C_FLAGS_SPLIT ${CMAKE_C_FLAGS})
+foreach(flag ${CMAKE_C_FLAGS_SPLIT})
+  file(APPEND ${CMAKE_SOURCE_DIR}/.clang_complete "${flag}\n")
 endforeach()
 
 

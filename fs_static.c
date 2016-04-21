@@ -132,7 +132,8 @@ void router(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint)
 
 	if (-1 == asprintf(&path, "%s/%s", fsd->htdocs, uri)) {
 		path = NULL;
-		goto errfuckup;
+		evhttp_send_error(r, 500, "Internal server fuckup. That's all I know");
+		goto bailout;
 	}
 
 	slog(4, SLOG_DEBUG, "Retrieving %s", path);
@@ -148,7 +149,8 @@ void router(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint)
 		if (fsd->index) {
 			if (-1 == asprintf(&ipath, "%s/%s", path, fsd->index)) {
 				ipath = NULL;
-				goto errfuckup;
+				evhttp_send_error(r, 500, "Internal server fuckup. That's all I know");
+				goto bailout;
 			}
 			if (0 == serve_file(r, ipath))
 				return;
@@ -157,17 +159,16 @@ void router(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint)
 	} else {
 		serve_file(r, path);
 	}
-	return;
-errfuckup:
+
+bailout:
 	if (path)
 		free(path);
 	if (ipath)
 		free(ipath);
-	evhttp_send_error(r, 500, "Internal server fuckup. That's all I know");
 }
 
 
-static void cfs_mount(struct ahttpd_mountpoint *mpoint)
+static int cfs_mount(struct ahttpd_mountpoint *mpoint)
 {
 	struct staticfs_data *fsd = mpoint->fsdata;
 
@@ -185,6 +186,7 @@ static void cfs_mount(struct ahttpd_mountpoint *mpoint)
 			fsd->index);
 
 	int i=0;
+	fsd->dirindexfunc = index_none;
 	while (dirindextypes[i].name != NULL) {
 		if (strcmp(dirindextypes[i].name, dirindex)==0) {
 			fsd->dirindexfunc = dirindextypes[i].dirindexfunc;
@@ -193,6 +195,7 @@ static void cfs_mount(struct ahttpd_mountpoint *mpoint)
 		}
 		i++;
 	}
+	return 0;
 }
 
 static void cfs_unmount(struct ahttpd_mountpoint *mpoint)

@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <aura-httpd/utils.h>
-	
+
 static void version(struct evhttp_request *request, void *arg)
 {
 	json_object *root = json_object_new_object();
@@ -18,6 +18,25 @@ static void version(struct evhttp_request *request, void *arg)
 	ahttpd_reply_with_json(request, root);
 	json_object_put(root);
 }
+
+static void terminate(struct evhttp_request *request, void *arg)
+{
+		struct ahttpd_mountpoint *mpoint = arg;
+		json_object *root = json_object_new_object();
+		json_object *ok =  json_object_new_string("OK");
+		ahttpd_reply_with_json(request, ok);
+		json_object_put(root);
+		slog(0, SLOG_WARN, "Got termination requst from web interface");
+
+		/* Now, schedule the actual shutdown */
+		struct timeval timeout;
+		timeout.tv_sec=1;
+		timeout.tv_usec=0;
+
+		//event_base_loopexit(mpoint->server->ebase, &timeout);
+		aura_eventloop_break(mpoint->server->aloop);
+}
+
 
 static void fstab(struct evhttp_request *request, void *arg)
 {
@@ -30,15 +49,19 @@ static void fstab(struct evhttp_request *request, void *arg)
 		json_object_array_add(arr, pos->props);
 		json_object_get(pos->props);
 	}
+
 	json_object_object_add(root, "fstab", arr);
 	ahttpd_reply_with_json(request, root);
 	json_object_put(root);
 }
 
-static void cfs_mount(struct ahttpd_mountpoint *mpoint)
+
+static int cfs_mount(struct ahttpd_mountpoint *mpoint)
 {
 	ahttpd_add_path(mpoint, "/version", version, mpoint);
 	ahttpd_add_path(mpoint, "/fstab", fstab, mpoint);
+	ahttpd_add_path(mpoint, "/terminate", terminate, mpoint);
+	return 0;
 }
 
 static void cfs_unmount(struct ahttpd_mountpoint *mpoint)
@@ -51,7 +74,7 @@ static struct ahttpd_fs controlfs =
 {
 	.name = "control",
 	.mount = cfs_mount,
-	.unmount = cfs_unmount, 
+	.unmount = cfs_unmount,
 };
 
 AHTTPD_FS(controlfs);

@@ -25,7 +25,7 @@ struct ahttpd_fs {
 	char *name;
 	int   usage;
 	int   fsdatalen;
-	void (*mount)(struct ahttpd_mountpoint *mpoint);
+	int (*mount)(struct ahttpd_mountpoint *mpoint);
 	void (*unmount)(struct ahttpd_mountpoint *mpoint);
 	void (*route)(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint);
 	struct list_head qentry;
@@ -43,6 +43,7 @@ struct ahttpd_mountpoint {
 
 void ahttpd_filesystem_register(struct ahttpd_fs *fs);
 int ahttpd_mount(struct ahttpd_server *server, json_object *opts);
+void ahttpd_unmount(struct ahttpd_mountpoint *mp);
 
 struct json_object *json_find(json_object *arr, char *k);
 const char *json_find_string(json_object *o, char *k);

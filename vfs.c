@@ -19,6 +19,7 @@ static LIST_HEAD(fslist);
         return;                                                         \
         }
 
+
 void ahttpd_filesystem_register(struct ahttpd_fs *fs)
 {
 	required(mount);
@@ -42,10 +43,10 @@ int ahttpd_mount(struct ahttpd_server *server, json_object *opts)
 {
 	const char *mp = json_find_string(opts, "mountpoint");
 	const char *tp = json_find_string(opts, "type");
-	
+
 	if ((tp == NULL) || (mp == NULL))
 		BUG(NULL, "Misconfigurated node section, skipping");
-	
+
 	struct ahttpd_fs *fs = ahttpd_filesystem_lookup(tp);
 	if (!fs) {
 		slog(0, SLOG_WARN, "Filesystem %s (%s) is unknown to us", tp, mp);
@@ -56,8 +57,8 @@ int ahttpd_mount(struct ahttpd_server *server, json_object *opts)
 	if (!mpoint)
 		BUG(NULL, "calloc() failed!");
 
-	mpoint->fs = fs; 
-	
+	mpoint->fs = fs;
+
 	if (fs->fsdatalen)
 		mpoint->fsdata = calloc(1, fs->fsdatalen);
 
@@ -74,4 +75,15 @@ int ahttpd_mount(struct ahttpd_server *server, json_object *opts)
 	fs->mount(mpoint);
 	list_add_tail(&mpoint->qentry, &server->mountpoints);
 	return 0;
+}
+
+void ahttpd_unmount(struct ahttpd_mountpoint *mp)
+{
+	slog(4, SLOG_DEBUG, "Unmounting %s", mp->mountpoint);
+	mp->fs->unmount(mp);
+	list_del(&mp->qentry);
+	if (mp->fsdata)
+		free(mp->fsdata);
+	json_object_put(mp->props);
+	free(mp);
 }
