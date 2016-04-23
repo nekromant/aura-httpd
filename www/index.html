@@ -14,19 +14,25 @@
 
 <body>
 
-    <div data-role="page" id="pageone">
+    <div data-role="page" id="mainpage">
 
         <div data-role="panel" id="nodePanel">
-            <h2>Mountpoints</h2>
-            <ul class="mountpoints">
-                <li><a href="#" onclick="loadFstab()">fstab</a></li>
-                <li><a href="#">nodes</a></li>
-                <li><a href="#">Search</a></li>
-            </ul>
+            <h3>Nodes</h3>
+            <div class="nodelist">
+                <a href="#" class="ui-btn ui-icon-delete ui-btn-icon-right">Loading</a>
+            </div>
+            <h3>Other Mountpoints</h3>
+            <div class="mpointlist">
+                <a href="#" class="ui-btn ui-icon-delete ui-btn-icon-right">Loading</a>
+            </div>
+            <hr>
+            <a href="#" class="ui-btn ui-icon-refresh ui-btn-icon-right" onclick="uiReload()">Refresh</a>
+
         </div>
+
         <div data-role="header">
             <a href="#nodePanel" class="ui-btn ui-icon-bars ui-btn-icon-left">Mountpoints</a>
-            <h1>Welcome AHTTPD Demo</h1>
+            <h1>AHTTPD Demo</h1>
             <a href="#" class="ui-btn ui-icon-home ui-btn-icon-left">Home</a>
         </div>
 
@@ -34,13 +40,13 @@
         <div data-role="navbar" class="nodebuttons" visible=false>
         </div>
 
-    <div data-role="main" class="ui-content">
-        <a href="#myPanel" class="ui-btn ui-btn-inline">Open Panel</a>
-    </div>
+        <div data-role="main" class="ui-content">
+            <a href="#myPanel" class="ui-btn ui-btn-inline">Open Panel</a>
+        </div>
 
-    <div data-role="footer">
-        <h1 class="version">Getting version info...</h1>
-    </div>
+        <div data-role="footer">
+            <h1 class="version">Getting version info...</h1>
+        </div>
     </div>
 
 </body>
