@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+
+    <script src="/static/utils.js"></script>
+</head>
+
+<body>
+
+    <div data-role="page" id="pageone">
+
+        <div data-role="panel" id="nodePanel">
+            <h2>Mountpoints</h2>
+            <ul class="mountpoints">
+                <li><a href="#" onclick="loadFstab()">fstab</a></li>
+                <li><a href="#">nodes</a></li>
+                <li><a href="#">Search</a></li>
+            </ul>
+        </div>
+        <div data-role="header">
+            <a href="#nodePanel" class="ui-btn ui-icon-settings ui-btn-icon-left">Mountpoints</a>
+            <h1>Welcome AHTTPD Demo</h1>
+            <a href="#" class="ui-btn ui-icon-home ui-btn-icon-left">Home</a>
+        </div>
+
+
+        <div data-role="navbar" class="nodebuttons" visible=false>
+        </div>
+
+    <div data-role="main" class="ui-content">
+        <a href="#myPanel" class="ui-btn ui-btn-inline">Open Panel</a>
+    </div>
+
+    <div data-role="footer">
+        <h1 class="version">Getting version info...</h1>
+    </div>
+    </div>
+
+</body>
+
+</html>
