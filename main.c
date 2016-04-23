@@ -116,7 +116,7 @@ int main (void) {
 	}
 
 	aura_handle_events_forever(server->aloop);
-	
+
 	struct ahttpd_mountpoint *pos;
 	struct ahttpd_mountpoint *tmp;
 	list_for_each_entry_safe(pos, tmp, &server->mountpoints, qentry) {
