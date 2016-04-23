@@ -4,6 +4,7 @@
 #include <aura/aura.h>
 #include <aura/list.h>
 #include <json.h>
+#include <event2/http.h>
 
 #define AHTTPD_FS(s)						   \
         void __attribute__((constructor (101))) do_reg_##s(void) { \
@@ -19,6 +20,7 @@ struct ahttpd_server {
 	char                   *host;
 	int                     port;
 	struct list_head        mountpoints;
+	char 					*index;
 };
 
 struct ahttpd_fs {
@@ -45,6 +47,7 @@ void ahttpd_filesystem_register(struct ahttpd_fs *fs);
 int ahttpd_mount(struct ahttpd_server *server, json_object *opts);
 void ahttpd_unmount(struct ahttpd_mountpoint *mp);
 void ahttpd_allow_method(struct evhttp_request *request, enum evhttp_cmd_type tp);
+void ahttpd_redirect_cb(struct evhttp_request *request, void *arg);
 
 struct json_object *json_find(json_object *arr, char *k);
 const char *json_find_string(json_object *o, char *k);

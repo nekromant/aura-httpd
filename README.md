@@ -4,13 +4,37 @@ AURA-HTTPD provides a simple way to bring aura to the world of the WEB automatic
 
 # Configuration
 
-The configuration file defines the basic things, e.g. what ip address and port to bind to as well as the mountpoints. The mountpoints are URI paths at which different things will appear.
+## Top level
+The configuration file defines a few of the basic things at the top level. e.g.
+
+```
+{
+        "host": "127.0.0.1",
+        "port": 8088,
+        "index": "/static/index.html"
+...
+```
+
+### host
+The ip address to listen on
+
+### port
+The port to listen on
+
+### index
+
+Where should the root of the web-server be redirected to. Normally your index is some html document within the web-server, so you would normally want to redirect
+the user there.   
+
+## Mount points
+
+The mountpoints are defined in a json array. They are the URI paths at which different things will appear.
 
 For example, if you mount control at /ctl you will be able to access /ctl/version and /ctl/fstab from your browser. You got the idea.
 
 This section documents all available mount types.
 
-## control
+### control
 
 ```
 {
@@ -20,7 +44,7 @@ This section documents all available mount types.
 ```
 
 A control mountpoint provides a few useful static files.
-### version
+#### version
 
 A JSON-formatted object representing current aura and application version.
 example response
@@ -32,7 +56,7 @@ example response
 }
 ```
 
-### fstab
+#### fstab
 
 Provides information about all mounted filesystems. Basically the 'mountpoints' part of the config file:
 
@@ -66,11 +90,11 @@ Provides information about all mounted filesystems. Basically the 'mountpoints' 
 }
 ```
 
-### shutdown
+#### shutdown
 
 Accessing this file will cause the server to exit within a few seconds.
 
-## static
+### static
 
 This mountpoint allows you to serve static files. Be warned though - the current static file serving implementation is useful only for testing purposes and MAY be buggy/incomplete/insecure. You are adviced to use a full-blown web-server with reverse-proxy functionality instead.
 
@@ -83,15 +107,15 @@ This mountpoint allows you to serve static files. Be warned though - the current
   "dirlist": "html",
 },
 ```
-### dir
+#### dir
 
 The directory to serve files from.
 
-### index
+#### index
 
 Index filename. E.g. index.html. If this file is present in the directory it will be served to the client instead of directory listing.   
 
-### dirlist
+#### dirlist
 
 Directory listing mode. This can be one of 'none', 'json' or 'html'. None will spit out a 403 error.
 
@@ -101,6 +125,7 @@ Directory listing mode. This can be one of 'none', 'json' or 'html'. None will s
 {
         "host": "127.0.0.1",
         "port": 8088,
+        "index": "/static/index.html"
         "mountpoints": [
                  {
                    "type": "control",

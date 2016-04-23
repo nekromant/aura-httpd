@@ -50,6 +50,8 @@ void parse_config(struct ahttpd_server *server, const char *filename)
 		case json_type_string:
 			if (strcmp(key, "host")==0)
 				server->host = strdup(json_object_get_string(val));
+			else if (strcmp(key, "index")==0)
+				server->index = strdup(json_object_get_string(val));
 			break;
 		case json_type_int:
 			if (strcmp(key, "port")==0)
@@ -110,6 +112,8 @@ int main (void) {
 	parse_config(server, "../config.json");
 
 	evhttp_set_gencb (server->eserver, generic_route, server);
+	if (server->index)
+		evhttp_set_cb (server->eserver, "/", ahttpd_redirect_cb, server->index);
 
 	if (evhttp_bind_socket (server->eserver, server->host, server->port) != 0) {
 		BUG(NULL, "I tried hard, but I could not bind to %s:%d, sorry(");
