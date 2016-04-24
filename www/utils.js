@@ -75,7 +75,12 @@ function nodeShowEvents() {
 }
 
 function nodeSubmitCall() {
-
+    name = $("#call-method-name").val();
+    args = "{ " + $("#call-method-args").val() + " } ";
+    //showError(name, args);
+    auraCall(currentNode.mountpoint, name, args, function(data) {
+        showError("RESUKT", data);
+    })
 }
 
 function updateArgHint() {
@@ -92,6 +97,13 @@ function updateArgHint() {
 
     }
     //if (currentMethods[])
+}
+
+function showError(title, text)
+{
+    $("#error-title").html(title);
+    $("#error-text").html(text);
+    window.location.href = "#error-message";
 }
 
 function nodeShowCallUi() {
@@ -161,8 +173,8 @@ function updateNodeState(nodepath) {
             $(".node-button-" + mpnt)
                 .addClass("ui-icon-forbidden")
                 .click(function() {
-                    $(".ui-content").append('<hr>This node failed to load. Check server log for details');
                     disableNodeMenu();
+                    showError("ERROR!", "This node failed to load hence will never go online. Check server log for details");
                 })
         },
     });
@@ -220,6 +232,7 @@ function uiReload() {
 }
 
 $(document).on("pageinit", "#mainpage", function() {
+    //$('#error-message').popup();
     $(document).on("swipeleft swiperight", "#mainpage", function(e) {
         // We check if there is no open panel on the page because otherwise
         // a swipe to close the left panel would also open the right panel (and v.v.).

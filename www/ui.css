@@ -1,0 +1,6 @@
+:root div[class*="unisound-banner"],
+:root .container > .infoBoxList > .shareInfoBox
+{display:none !important;}
+        .ui-filter-inset {
+            margin-top: 0;
+        }

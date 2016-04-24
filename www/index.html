@@ -9,7 +9,7 @@
     <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
     <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
-
+    <script src="/static/aura.js"></script>
     <script src="/static/utils.js"></script>
 </head>
 
@@ -66,11 +66,10 @@
                 <li>Ferrari</li>
             </ul>
             <label id="call-method-arghint">uint16,</label>
-            <input type="text" name="args" id="name" value="" placeholder="Arguments" />
+            <input type="text" name="args" id="call-method-args" value="" placeholder="Arguments" />
             <input data-inline="true" value="Go!" type="button" onclick="nodeSubmitCall();">
 
         </div>
-
 
         <div data-role="main" class="ui-content" id="content-welcome">
             <div class="pagedata">
@@ -86,6 +85,16 @@
 
         <div data-role="footer">
             <h1 class="version">Getting version info...</h1>
+        </div>
+    </div>
+
+
+    <div data-role="dialog" id="error-message">
+        <div data-role="header">
+            <h1 id="error-title">Dialog Only Page</h1>
+        </div>
+        <div data-role="content" id="error-text">
+            <p>I can only be served as a dialog, and I don't need a data-rel="dialog" attribute on a link</p>
         </div>
     </div>
 
