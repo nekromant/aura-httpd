@@ -76,10 +76,14 @@ function nodeShowEvents() {
 
 function nodeSubmitCall() {
     name = $("#call-method-name").val();
-    args = "{ " + $("#call-method-args").val() + " } ";
+    args = "[ " + $("#call-method-args").val() + " ] ";
     //showError(name, args);
     auraCall(currentNode.mountpoint, name, args, function(data) {
-        showError("RESUKT", data);
+        if (data.result == "error")
+            showError(data.result, data.why);
+        else {
+            showError("Call completed", JSON.stringify(data, undefined, 2));
+        }
     })
 }
 

@@ -22,15 +22,23 @@
  */
 
 struct pending_call_resource {
-	struct list_head	qenty;
+	struct list_head	qentry;
 	int			callid;
 	struct aura_object *	o;
+	char *			path;
+	struct ahttpd_mountpoint *mp;
+	/* Return values from aura */
+	struct json_object *retbuf;
+	const char *resource_status; /* pending or dead ? */
+	struct event *devt;
 };
 
 struct nodefs_data {
 	struct aura_node *	node;
 	struct json_object *	etable;
 	struct list_head	pending_call_list;
+	struct list_head	gc_call_list;
+	int			callid;
 };
 
 
@@ -193,7 +201,7 @@ case cs: \
 		case URPC_BIN:
 			len = atoi(fmt);
 			tmp = json_object_new_string("buffer");
-			while (*fmt && (*fmt++ != '.')) ;
+			while (*fmt && (*fmt++ != '.'));
 			break;
 		case 0x0:
 			tmp = json_object_new_object();
@@ -208,12 +216,27 @@ case cs: \
 	return ret;
 }
 
+int json_object_is_type_log(struct json_object *jo, enum json_type want)
+{
+	enum json_type tp;
+	tp = json_object_get_type(jo);
+	if (tp != want) {
+		slog(0, SLOG_WARN, "Bad JSON data. Want %s got %s",
+		json_type_to_name(want),
+		json_type_to_name(tp));
+		return 0;
+	}
+	return 1;
+}
 int buffer_from_json(struct aura_buffer *	buf,
 		     struct json_object *	json,
 		     const char *		fmt)
 {
-	int i=0;
-	if (!json_object_is_type(json, json_type_array))
+	int i = 0;
+	enum json_type tp;
+
+
+	if (!json_object_is_type_log(json, json_type_array))
 		return -1;
 
 	if (!fmt)
@@ -233,8 +256,9 @@ int buffer_from_json(struct aura_buffer *	buf,
 #define PUT_VAR_IN_CASE(cs, sz) \
 case cs: \
 	tmp = json_object_array_get_idx(json, i); \
-	if (!json_object_is_type(json, json_type_int)) \
+	if (!json_object_is_type_log(tmp, json_type_int)) {\
 		return -1; \
+	} \
 	var.sz = json_object_get_int64(tmp); \
 	aura_buffer_put_ ## sz(buf, var.sz); \
 	break;
@@ -260,7 +284,7 @@ case cs: \
 		case URPC_BIN:
 			len = atoi(fmt);
 			BUG(NULL, "Not implemented");
-			while (*fmt && (*fmt++ != '.')) ;
+			while (*fmt && (*fmt++ != '.'));
 			break;
 		case 0x0:
 			BUG(NULL, "Not implemented");
@@ -270,29 +294,180 @@ case cs: \
 	return 0;
 }
 
+
+void call_resource_delete(int fd, short event, void *arg)
+{
+		struct pending_call_resource *res = arg;
+		slog(4, SLOG_DEBUG, "Garbage-collecting resource %s", res->path);
+		list_del(&res->qentry);
+		event_del(res->devt);
+		evhttp_del_cb (res->mp->server->eserver, res->path);
+		json_object_put(res->retbuf);
+		free(res->path);
+		free(res);
+}
+
+static void resource_readout(struct evhttp_request *request, void *arg)
+{
+	struct pending_call_resource *res = arg;
+	slog(4, SLOG_DEBUG, "Readout : %s", res->path);
+	struct nodefs_data *nd = res->mp->fsdata;
+	if (res->retbuf) { /* Call completed already */
+		ahttpd_reply_with_json(request, res->retbuf);
+		/* We can't call evhttp_del_cb here, so we move resource to our
+		gc list to be freed later */
+		list_del(&res->qentry);
+		list_add_tail(&res->qentry, &nd->gc_call_list);
+		struct timeval tv;
+  		tv.tv_sec = 3;
+  		tv.tv_usec = 0;
+		res->devt = evtimer_new(res->mp->server->ebase, call_resource_delete, res);
+  		evtimer_add(res->devt, &tv);
+		/* If this resource gets called before it's freed - tell 'em we're dead */
+		res->resource_status = "dead";
+	} else {
+		struct json_object *tmp = json_object_new_object();
+		struct json_object *result_json = json_object_new_string(res->resource_status);
+		json_object_object_add(tmp, "status", result_json);
+		ahttpd_reply_with_json(request, tmp);
+		json_object_put(tmp);
+	}
+}
+
+
+struct pending_call_resource *call_resource_create(struct ahttpd_mountpoint *mpoint, struct aura_object *o)
+{
+	int ret;
+	struct nodefs_data *nd = mpoint->fsdata;
+	struct pending_call_resource *res = calloc(1, sizeof(*res));
+
+	if (!res)
+		BUG(nd->node, "Malloc failed!");
+
+	res->callid = nd->callid++;
+	res->o = o;
+	res->resource_status = "pending";
+	res->mp = mpoint;
+	ret = asprintf(&res->path, "%s/pending/%d", mpoint->mountpoint, res->callid);
+	if (-1 == ret)
+		BUG(nd->node, "Malloc failed");
+
+	evhttp_set_cb (mpoint->server->eserver, res->path, resource_readout, res);
+
+	slog(4, SLOG_DEBUG, "Created temporary resource %s for %s", res->path, o->name);
+	list_add_tail(&res->qentry, &nd->pending_call_list);
+	return res;
+}
+
+void call_completed_cb(struct aura_node *node, int result, struct aura_buffer *retbuf, void *arg)
+{
+	struct pending_call_resource *res = arg;
+	struct ahttpd_mountpoint *mpoint = aura_get_userdata(node);
+	struct nodefs_data *nd = mpoint->fsdata;
+	res->retbuf = json_object_new_object();
+
+	struct json_object *result_json = json_object_new_string("completed");
+	json_object_object_add(res->retbuf, "status", result_json);
+	if (retbuf) {
+		struct json_object *retbuf_json  = buffer_to_json(retbuf, res->o->ret_fmt);
+		json_object_object_add(res->retbuf, "data", retbuf_json);
+	}
+}
+
 static void issue_call(struct evhttp_request *request, void *arg)
 {
-	struct aura_object *o = arg;
-	ahttpd_allow_method(request, EVHTTP_REQ_POST);
-	
+	int ret;
+	struct ahttpd_mountpoint *mpoint = arg;
+	struct nodefs_data *nd = mpoint->fsdata;
+	struct aura_node *node = nd->node;
+	struct aura_object *o;
+	char *jsonargs = NULL;
+
+	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
+	jsonargs = evhttp_uridecode(evhttp_uri_get_query(uri), 1, NULL);
+	enum json_tokener_error error = json_tokener_success;
+	const char *name = evhttp_uri_get_path(uri);
+
+	struct json_object *reply = NULL;
+	struct json_object *result = NULL;
+	struct json_object *why = NULL;
+
+	name = &name[strlen(mpoint->mountpoint) + strlen("/call/")];
+
+	ahttpd_allow_method(request, EVHTTP_REQ_GET);
+
+	o = aura_etable_find(node->tbl, name);
+	if (!o) {
+		result = json_object_new_string("error");
+		why = json_object_new_string("method not found");
+		goto bailout;
+	}
+
+	json_object *args = json_tokener_parse_verbose(jsonargs, &error);
+	if (error != json_tokener_success) {
+		result = json_object_new_string("error");
+		why = json_object_new_string("problem parsing params");
+		goto bailout;
+	}
+	struct aura_buffer *buf = aura_buffer_request(node, o->arglen);
+	ret = buffer_from_json(buf, args, o->arg_fmt);
+	if (ret != 0) {
+		slog(0, SLOG_WARN, "Problem marshalling data, ret %d data %s ", ret, jsonargs);
+		result = json_object_new_string("error");
+		why = json_object_new_string("problem marshalling data");
+		goto bailout;
+	}
+
+	struct pending_call_resource *res = call_resource_create(mpoint, o);
+	if (!res) {
+		result = json_object_new_string("error");
+		why = json_object_new_string("problem creating temporary resource");
+		goto bailout;
+	}
+
+	ret = aura_core_start_call(node, o, call_completed_cb, res, buf);
+	if (ret != 0) {
+		result = json_object_new_string("error");
+		why = json_object_new_string("problem starting aura call");
+		slog(0, SLOG_WARN, "aura_core_start_call() failed with %d", ret);
+		goto bailout;
+	} else
+		ahttpd_reply_accepted(request, res->path);
+
+bailout:
+	if (jsonargs)
+		free(jsonargs);
+
+	if (result || why)
+		reply = json_object_new_object();
+
+	if (result)
+		json_object_object_add(reply, "result", result);
+	if (why)
+		json_object_object_add(reply, "why", why);
+
+	ahttpd_reply_with_json(request, reply);
+	json_object_put(reply);
 }
 
 static void callpath_add(const struct aura_object *o, struct ahttpd_mountpoint *mpoint)
 {
 	char *callpath;
 	struct nodefs_data *nd = mpoint->fsdata;
+
 	if (-1 == asprintf(&callpath, "/call/%s", o->name))
 		BUG(nd->node, "Out of memory");
-	ahttpd_add_path(mpoint, callpath, issue_call, (void *) o);
+	ahttpd_add_path(mpoint, callpath, issue_call, mpoint);
 	free(callpath);
 }
 
 static void callpath_delete(const struct aura_object *o, struct ahttpd_mountpoint *mpoint)
 {
 	char *callpath;
+
 	if (-1 == asprintf(&callpath, "/call/%s", o->name))
 		BUG(NULL, "Out of memory");
-	ahttpd_add_path(mpoint, callpath, issue_call, (void *) o);
+	ahttpd_add_path(mpoint, callpath, issue_call, (void *)o);
 	free(callpath);
 }
 
@@ -375,11 +550,6 @@ static void events(struct evhttp_request *request, void *arg)
 	json_object_put(list);
 }
 
-static void call(struct evhttp_request *request, void *arg)
-{
-	struct nodefs_data *nd = arg;
-
-}
 
 static int node_mount(struct ahttpd_mountpoint *mpoint)
 {
@@ -400,14 +570,15 @@ static int node_mount(struct ahttpd_mountpoint *mpoint)
 		return -1;
 	}
 	nd->etable = NULL;
-
+	aura_set_userdata(nd->node, mpoint);
 	aura_eventloop_add(mpoint->server->aloop, nd->node);
 	aura_etable_changed_cb(nd->node, etbl_changed_cb, mpoint);
 	aura_enable_sync_events(nd->node, 100); /* TODO: Move to config */
 	ahttpd_add_path(mpoint, "/exports", exports, nd);
 	ahttpd_add_path(mpoint, "/events", events, nd);
 	ahttpd_add_path(mpoint, "/status", status, nd);
-
+	INIT_LIST_HEAD(&nd->pending_call_list);
+	INIT_LIST_HEAD(&nd->gc_call_list);
 	return 0;
 }
 

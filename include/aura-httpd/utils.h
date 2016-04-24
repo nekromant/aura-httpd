@@ -59,6 +59,7 @@ void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path,
 void ahttpd_del_path(struct ahttpd_mountpoint *mpoint, const char *path);
 
 void ahttpd_reply_with_json(struct evhttp_request *request, json_object *o);
+void ahttpd_reply_accepted(struct evhttp_request *request, const char *redir);
 
 //FixMe: Move these out
 void ahttpd_mount_control(struct event_base *ebase, struct evhttp *eserver, json_object *opts);
