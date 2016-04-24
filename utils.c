@@ -54,6 +54,16 @@ void ahttpd_del_path(struct ahttpd_mountpoint *mpoint, const char *path)
 	free(str);
 }
 
+void ahttpd_reply_accepted(struct evhttp_request *request, const char *redir)
+{
+	struct evbuffer *buffer = evbuffer_new();
+	evhttp_add_header (evhttp_request_get_output_headers (request),
+			"Location", redir);
+	evhttp_send_reply(request, 202, "Accepted", buffer);
+	evbuffer_free (buffer);
+}
+
+
 void ahttpd_reply_with_json(struct evhttp_request *request, json_object *o)
 {
 	struct evbuffer *buffer = evbuffer_new();

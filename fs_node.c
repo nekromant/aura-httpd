@@ -255,7 +255,7 @@ int buffer_from_json(struct aura_buffer *	buf,
 
 #define PUT_VAR_IN_CASE(cs, sz) \
 case cs: \
-	tmp = json_object_array_get_idx(json, i); \
+	tmp = json_object_array_get_idx(json, i++); \
 	if (!json_object_is_type_log(tmp, json_type_int)) {\
 		return -1; \
 	} \
