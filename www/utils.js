@@ -10,7 +10,7 @@ function syntaxHighlight(json) {
 }
 
 function displayJSON(data) {
-    $('.ui-content').hide();
+    $('.pagedata').hide();
     $('#content-json').html(syntaxHighlight(data));
     $('#content-json').show();
     $('pre code').each(function(i, block) {
@@ -29,17 +29,6 @@ function getAndDisplayJSON(uri) {
     });
 }
 
-function getAndDisplayHTML(uri) {
-    $.ajax({
-        url: uri,
-        type: 'GET',
-
-        success: function(data) {
-            $('.ui-content').html(data);
-        }
-    });
-}
-
 function showNode(i) {
     var uri = item.mountpoint + "/status";
     $.ajax({
@@ -49,7 +38,7 @@ function showNode(i) {
             if (data.status == "online")
                 getAndDisplayJSON(item.mountpoint + "/exports")
             else
-                $('.ui-content').html("Node offline");
+                $('#content-static').html("Node offline").show();
         },
     });
 }
@@ -59,6 +48,7 @@ function enableNodeMenu() {
 }
 
 function disableNodeMenu() {
+    $(".node-button").removeClass("ui-btn-active");
     $(".nodebuttons").hide();
 }
 
@@ -78,11 +68,16 @@ function nodeSubmitCall() {
     name = $("#call-method-name").val();
     args = "[ " + $("#call-method-args").val() + " ] ";
     //showError(name, args);
-    auraCall(currentNode.mountpoint, name, args, function(data) {
-        if (data.result == "error")
+    auraCall(currentNode.mountpoint, name, args, function(status, data) {
+        if (status != "success") {
+            showError(status, data);
+        } else if (data.result == "error")
             showError(data.result, data.why);
         else {
-            showError("Call completed", JSON.stringify(data, undefined, 2));
+            showError("Call completed", syntaxHighlight(data));
+            $('pre code').each(function(i, block) {
+                hljs.highlightBlock(block);
+            });
         }
     })
 }
@@ -103,15 +98,24 @@ function updateArgHint() {
     //if (currentMethods[])
 }
 
+function nodeShowWelcome()
+{
+    disableNodeMenu();
+    $('.pagedata').hide();
+    $('#content-welcome').show();
+}
+
 function showError(title, text)
 {
     $("#error-title").html(title);
     $("#error-text").html(text);
-    window.location.href = "#error-message";
+    $('#error-message').popup();
+    $('#error-message').popup('open');
+    //window.location.href = "#error-message";
 }
 
 function nodeShowCallUi() {
-    $('.ui-content').hide();
+    $('.pagedata').hide();
     $("#content-call").show();
     $("#node-method-list").html("")
     $("#node-method-list li").addClass('ui-screen-hidden');
@@ -142,7 +146,8 @@ function nodeShowCallUi() {
 }
 
 function showNode(item) {
-    $('.ui-content').hide();
+    $('.pagedata').hide();
+    disableNodeMenu();
     if (item.type == "control")
         getAndDisplayJSON(item.mountpoint + "/fstab")
     if (item.type == "node") {

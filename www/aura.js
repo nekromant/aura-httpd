@@ -15,12 +15,12 @@ function doPollForResult(uri, callback) {
         url: uri,
         type: 'GET',
         success: function(data, status, xhr) {
-            if (data.status == "pending") {
+            if (data.status == "pending" || status != "success") {
                 setTimeout(function() {
                     doPollForResult(uri, callback)
                 }, 1000);
             } else
-            callback(data)
+            callback(status, data)
         }
     });
 }
@@ -31,12 +31,15 @@ function auraCall(nodepath, method, args, handler) {
         url: nodepath + "/call/" + method,
         type: 'GET',
         data: args,
+        error: function(xhr, status, err){
+            handler(status, err);
+        },
         success: function(data, status, xhr) {
             if (!data.result) {
                 var loc = xhr.getResponseHeader('Location');
                 doPollForResult(loc, handler);
             } else
-                handler(data)
+                handler(status, data)
         }
     });
 }

@@ -34,52 +34,61 @@
         <div data-role="header">
             <a href="#nodePanel" class="ui-btn ui-icon-bars ui-btn-icon-left">Mountpoints</a>
             <h1>AHTTPD Demo</h1>
-            <a href="#" class="ui-btn ui-icon-home ui-btn-icon-left">Home</a>
+            <a href="#error-message"  onclick="nodeShowWelcome();" class="ui-btn ui-icon-home ui-btn-icon-left">Home</a>
         </div>
 
         <div data-role="header">
             <div data-role="navbar" class="nodebuttons" style="display: none">
                 <ul>
-                    <li><a href="#" onclick="nodeShowExports();">Exports</a></li>
-                    <li><a href="#" onclick="nodeShowStatus();">Status</a></li>
-                    <li><a href="#" onclick="nodeShowEvents();">Events</a></li>
-                    <li><a href="#" onclick="nodeShowCallUi();">Call</a></li>
+                    <li><a href="#" class="node-button" onclick="nodeShowExports();">Exports</a></li>
+                    <li><a href="#" class="node-button" onclick="nodeShowStatus();">Status</a></li>
+                    <li><a href="#" class="node-button" onclick="nodeShowEvents();">Events</a></li>
+                    <li><a href="#" class="node-button" onclick="nodeShowCallUi();">Call</a></li>
                 </ul>
             </div>
         </div>
 
-        <div data-role="main" class="ui-content" id="content-json" style="display:none">
-        </div>
+        <div data-role="main" class="ui-content">
 
-        <div data-role="main" class="ui-content" id="content-static" style="display:none">
-        </div>
+            <div data-role="content">
+                <div data-role="popup" id="error-message" data-overlay-theme="a" data-theme="a" style="max-width:400px;" class="ui-corner-all">
+                    <div data-role="header" data-theme="a" class="ui-corner-top">
+                        <h1 id="error-title">Delete Page?</h1>
+                    </div>
+                    <div role="main" class="ui-corner-bottom ui-content">
+                        <p id="error-text">This action cannot be undone.</p>
+                        <a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Close</a>
+                    </div>
+                </div>
+            </div>
 
-        <div data-role="main" class="ui-content" id="content-call" style="display:none">
-            <form class="ui-filterable">
-                <input type="text" id="call-method-name" placeholder="Method Name">
-            </form>
-            <ul data-role="listview" data-inset="true" data-filter="true" data-filter-reveal="true" data-input="#call-method-name" id="node-method-list">
-                <li>Acura</li>
-                <li>Audi</li>
-                <li>BMW</li>
-                <li>Cadillac</li>
-                <li>Ferrari</li>
-            </ul>
-            <label id="call-method-arghint">uint16,</label>
-            <input type="text" name="args" id="call-method-args" value="" placeholder="Arguments" />
-            <input data-inline="true" value="Go!" type="button" onclick="nodeSubmitCall();">
+            <div id="content-json" style="display:none" class="pagedata">
+            </div>
 
-        </div>
+            <div id="content-static" style="display:none" class="pagedata">
+            </div>
 
-        <div data-role="main" class="ui-content" id="content-welcome">
-            <div class="pagedata">
+            <div id="content-call" style="display:none" class="pagedata">
+                <form class="ui-filterable">
+                    <input type="text" id="call-method-name" placeholder="Method Name">
+                </form>
+                <ul data-role="listview" data-inset="true" data-filter="true" data-filter-reveal="true" data-input="#call-method-name" id="node-method-list">
+                    <li>Acura</li>
+                    <li>Audi</li>
+                    <li>BMW</li>
+                    <li>Cadillac</li>
+                    <li>Ferrari</li>
+                </ul>
+                <label id="call-method-arghint">uint16,</label>
+                <input type="text" name="args" id="call-method-args" value="" placeholder="Arguments" />
+                <input data-inline="true" value="Go!" type="button" onclick="nodeSubmitCall();">
+            </div>
+
+            <div id="content-welcome" class="pagedata">
                 Welcome to aura-httpd! A one-stop solution that will bring your aura-based devices to the world of the web.
                 <br> This is a silly demo that shows you some things around and that can be use for testing.
                 <br> Please note that aura-httpd is right now only a proof of concept and shouldn't be used in a live environment open for all internets
             </div>
-        </div>
-
-        <div data-role="main" class="call-ui" style="display: none">
 
         </div>
 
@@ -89,14 +98,6 @@
     </div>
 
 
-    <div data-role="dialog" id="error-message">
-        <div data-role="header">
-            <h1 id="error-title">Dialog Only Page</h1>
-        </div>
-        <div data-role="content" id="error-text">
-            <p>I can only be served as a dialog, and I don't need a data-rel="dialog" attribute on a link</p>
-        </div>
-    </div>
 
 </body>
 
