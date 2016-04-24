@@ -4,6 +4,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <link rel="stylesheet" href="/static/ui.css">
     <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
@@ -36,12 +37,51 @@
             <a href="#" class="ui-btn ui-icon-home ui-btn-icon-left">Home</a>
         </div>
 
-
-        <div data-role="navbar" class="nodebuttons" visible=false>
+        <div data-role="header">
+            <div data-role="navbar" class="nodebuttons" style="display: none">
+                <ul>
+                    <li><a href="#" onclick="nodeShowExports();">Exports</a></li>
+                    <li><a href="#" onclick="nodeShowStatus();">Status</a></li>
+                    <li><a href="#" onclick="nodeShowEvents();">Events</a></li>
+                    <li><a href="#" onclick="nodeShowCallUi();">Call</a></li>
+                </ul>
+            </div>
         </div>
 
-        <div data-role="main" class="ui-content">
-            <a href="#myPanel" class="ui-btn ui-btn-inline">Open Panel</a>
+        <div data-role="main" class="ui-content" id="content-json" style="display:none">
+        </div>
+
+        <div data-role="main" class="ui-content" id="content-static" style="display:none">
+        </div>
+
+        <div data-role="main" class="ui-content" id="content-call" style="display:none">
+            <form class="ui-filterable">
+                <input type="text" id="call-method-name" placeholder="Method Name">
+            </form>
+            <ul data-role="listview" data-inset="true" data-filter="true" data-filter-reveal="true" data-input="#call-method-name" id="node-method-list">
+                <li>Acura</li>
+                <li>Audi</li>
+                <li>BMW</li>
+                <li>Cadillac</li>
+                <li>Ferrari</li>
+            </ul>
+            <label id="call-method-arghint">uint16,</label>
+            <input type="text" name="args" id="name" value="" placeholder="Arguments" />
+            <input data-inline="true" value="Go!" type="button" onclick="nodeSubmitCall();">
+
+        </div>
+
+
+        <div data-role="main" class="ui-content" id="content-welcome">
+            <div class="pagedata">
+                Welcome to aura-httpd! A one-stop solution that will bring your aura-based devices to the world of the web.
+                <br> This is a silly demo that shows you some things around and that can be use for testing.
+                <br> Please note that aura-httpd is right now only a proof of concept and shouldn't be used in a live environment open for all internets
+            </div>
+        </div>
+
+        <div data-role="main" class="call-ui" style="display: none">
+
         </div>
 
         <div data-role="footer">

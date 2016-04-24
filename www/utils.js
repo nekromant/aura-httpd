@@ -1,3 +1,6 @@
+var currentNode;
+var currentMethods;
+
 function syntaxHighlight(json) {
     if (typeof json != 'string') {
         json = JSON.stringify(json, undefined, 2);
@@ -6,6 +9,14 @@ function syntaxHighlight(json) {
     return '<pre><code class="json">' + json + '</code></pre>';
 }
 
+function displayJSON(data) {
+    $('.ui-content').hide();
+    $('#content-json').html(syntaxHighlight(data));
+    $('#content-json').show();
+    $('pre code').each(function(i, block) {
+        hljs.highlightBlock(block);
+    });
+}
 
 function getAndDisplayJSON(uri) {
     $.ajax({
@@ -13,10 +24,18 @@ function getAndDisplayJSON(uri) {
         type: 'GET',
 
         success: function(data) {
-            $('.ui-content').html(syntaxHighlight(data));
-            $('pre code').each(function(i, block) {
-                hljs.highlightBlock(block);
-            });
+            displayJSON(data)
+        }
+    });
+}
+
+function getAndDisplayHTML(uri) {
+    $.ajax({
+        url: uri,
+        type: 'GET',
+
+        success: function(data) {
+            $('.ui-content').html(data);
         }
     });
 }
@@ -35,14 +54,91 @@ function showNode(i) {
     });
 }
 
+function enableNodeMenu() {
+    $(".nodebuttons").show();
+}
+
+function disableNodeMenu() {
+    $(".nodebuttons").hide();
+}
+
+function nodeShowExports() {
+    getAndDisplayJSON(currentNode.mountpoint + "/exports")
+}
+
+function nodeShowStatus() {
+    getAndDisplayJSON(currentNode.mountpoint + "/status")
+}
+
+function nodeShowEvents() {
+    getAndDisplayJSON(currentNode.mountpoint + "/events")
+}
+
+function nodeSubmitCall() {
+
+}
+
+function updateArgHint() {
+    var method = currentMethods[$("#call-method-name").val()];
+     $("#call-method-arghint").html("");
+    if (method) {
+        $("#node-method-list li").addClass('ui-screen-hidden');
+        method.afmt.forEach(function(item, i, arr) {
+            var h = $("#call-method-arghint").html();
+            if (h != "")
+                $("#call-method-arghint").append(", ")
+            $("#call-method-arghint").append(item)
+        })
+
+    }
+    //if (currentMethods[])
+}
+
+function nodeShowCallUi() {
+    $('.ui-content').hide();
+    $("#content-call").show();
+    $("#node-method-list").html("")
+    $("#node-method-list li").addClass('ui-screen-hidden');
+    currentMethods={};
+    var uri = currentNode.mountpoint + "/exports";
+    $.ajax({
+        url: uri,
+        type: 'GET',
+        success: function(data) {
+            data.forEach(function(item, i, arr) {
+                if (item.type == "method") {
+                    $("#node-method-list").append("<li>" + item.name + "</li>");
+                    currentMethods[item.name] = item;
+                }
+            })
+            $("#call-method-name").change(function() {
+                updateArgHint();
+            })
+            $("#node-method-list li").on("click", function() {
+                $("#call-method-name").val($(this).text());
+                $("#node-method-list li").addClass('ui-screen-hidden');
+                updateArgHint();
+            });
+
+        },
+    });
+
+}
+
 function showNode(item) {
+    $('.ui-content').hide();
     if (item.type == "control")
         getAndDisplayJSON(item.mountpoint + "/fstab")
-    if (item.type == "node")
-        getAndDisplayJSON(item.mountpoint + "/exports")
-    if (item.type == "static")
-        $(".ui-content").html("<iframe width=100% height=100% border=none src='" + item.mountpoint + "/'></iframe>")
+    if (item.type == "node") {
+        enableNodeMenu();
+        currentNode = item;
+        displayJSON(item)
+    }
 
+    if (item.type == "static") {
+        $("#content-static").html("<iframe width=100% height=100% border=none src='" + item.mountpoint + "/'></iframe>")
+        $("#content-static").show();
+    }
 }
 
 
@@ -59,15 +155,15 @@ function updateNodeState(nodepath) {
             var icon = "ui-icon-delete"
             if (data.status == "online")
                 icon = "ui-icon-check"
-            alert(icon)
             $(".node-button-" + mpnt).addClass(icon)
         },
         error: function() {
             $(".node-button-" + mpnt)
-            .addClass("ui-icon-forbidden")
-            .click(function() {
-                alert('This node failed to load. Check server log for details');
-            })
+                .addClass("ui-icon-forbidden")
+                .click(function() {
+                    $(".ui-content").append('<hr>This node failed to load. Check server log for details');
+                    disableNodeMenu();
+                })
         },
     });
 }
@@ -137,4 +233,6 @@ $(document).on("pageinit", "#mainpage", function() {
         }
     });
 });
-    uiReload();
+
+uiReload();
+disableNodeMenu();
