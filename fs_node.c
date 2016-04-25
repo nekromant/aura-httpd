@@ -382,15 +382,21 @@ static void issue_call(struct evhttp_request *request, void *arg)
 	struct aura_node *node = nd->node;
 	struct aura_object *o;
 	char *jsonargs = NULL;
-
-	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
-	jsonargs = evhttp_uridecode(evhttp_uri_get_query(uri), 1, NULL);
-	enum json_tokener_error error = json_tokener_success;
-	const char *name = evhttp_uri_get_path(uri);
-
 	struct json_object *reply = NULL;
 	struct json_object *result = NULL;
 	struct json_object *why = NULL;
+
+	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
+	jsonargs = evhttp_uri_get_query(uri);
+	if (!jsonargs) {
+		result = json_object_new_string("error");
+		why = json_object_new_string("missing call parameters");
+		goto bailout;
+	}
+
+	jsonargs = evhttp_uridecode(jsonargs, 1, NULL);
+	enum json_tokener_error error = json_tokener_success;
+	const char *name = evhttp_uri_get_path(uri);
 
 	name = &name[strlen(mpoint->mountpoint) + strlen("/call/")];
 
@@ -443,6 +449,7 @@ bailout:
 
 	if (result)
 		json_object_object_add(reply, "result", result);
+
 	if (why)
 		json_object_object_add(reply, "why", why);
 
