@@ -158,9 +158,13 @@ Directory listing mode. This can be one of 'none', 'json' or 'html'. None will s
 
 #TODO
 
+* main: move server creation/destruction functions to a separate file
+* main: Commandline arguments parsing
+* main: Daemonize properly
 * fs_node: Rework method calling procedure.  
 * Properly cleanup and free resources on exit
 * fs_v4l2: Implement jpeg file serving from v4l devices
 * Add CI builds and tests
 * Implement test suite
 * Cleanup, valgrinding, static analysis, etc.
+* systemd unit file
