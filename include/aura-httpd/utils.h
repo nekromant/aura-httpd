@@ -78,4 +78,9 @@ const char *ahttpd_mime_guess(struct hsearch_data *instance, const char *filenam
 struct hsearch_data *ahttpd_mime_init();
 void *ahttpd_mime_destroy(struct hsearch_data *instance);
 
+/* server */
+
+struct ahttpd_server *ahttpd_server_create(struct json_object *config);
+void ahttpd_server_destroy(struct ahttpd_server *);
+
 #endif

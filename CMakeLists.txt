@@ -10,6 +10,7 @@ SET(SRCS
   main.c
   serdes-json.c
   mime.c
+  server.c
   fs_control.c
   fs_node.c
   fs_static.c
