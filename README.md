@@ -1,3 +1,5 @@
+[![Build Status](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/badge/icon)](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/)
+
 # AURA-HTTPD
 
 AURA-HTTPD provides a simple way to bring aura to the world of the WEB automatically creating a fun, easy to use REST API out of the methods you've exported from an aura node. It's still WIP and not yet usable
@@ -158,13 +160,10 @@ Directory listing mode. This can be one of 'none', 'json' or 'html'. None will s
 
 #TODO
 
-* main: move server creation/destruction functions to a separate file
 * main: Commandline arguments parsing
 * main: Daemonize properly
 * fs_node: Rework method calling procedure.  
-* Properly cleanup and free resources on exit
 * fs_v4l2: Implement jpeg file serving from v4l devices
-* Add CI builds and tests
-* Implement test suite
+* Implement proper test suite
 * Cleanup, valgrinding, static analysis, etc.
 * systemd unit file
