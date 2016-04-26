@@ -74,3 +74,33 @@ void ahttpd_reply_with_json(struct evhttp_request *request, json_object *o)
 	evhttp_send_reply(request, HTTP_OK, "OK", buffer);
 	evbuffer_free (buffer);
 }
+
+struct json_object *json_load_from_file(char *filename)
+{
+	struct stat st;
+
+	slog(1, SLOG_DEBUG, "Reading config: %s", filename);
+	if ((stat(filename, &st) == -1) || S_ISDIR(st.st_mode)) {
+		slog(0, SLOG_ERROR, "Config file %s doesn't exist");
+		exit(1);
+	}
+
+	int file_size = st.st_size;
+	char *buf = calloc(1, file_size + 1);
+	FILE *fd = fopen(filename, "r");
+	if (!fd)
+		BUG(NULL, "Failed to open config file");
+
+	if (1 != fread(buf, file_size, 1, fd))
+		BUG(NULL, "Failed to read config file");
+
+	enum json_tokener_error error = json_tokener_success;
+	json_object *conf = json_tokener_parse_verbose(buf, &error);
+	if (error != json_tokener_success) {
+		slog(0, SLOG_ERROR, "Problem parsing config file");
+		exit(1);
+	}
+	fclose(fd);
+	free(buf);
+	return conf;
+}

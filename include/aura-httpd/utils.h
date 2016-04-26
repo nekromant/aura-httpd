@@ -82,5 +82,6 @@ void *ahttpd_mime_destroy(struct hsearch_data *instance);
 
 struct ahttpd_server *ahttpd_server_create(struct json_object *config);
 void ahttpd_server_destroy(struct ahttpd_server *);
+struct json_object *json_load_from_file(char *filename);
 
 #endif
