@@ -8,6 +8,7 @@ SET(SRCS
   vfs.c
   utils.c
   main.c
+  serdes-json.c
   mime.c
   fs_control.c
   fs_node.c
