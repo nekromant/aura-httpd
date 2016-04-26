@@ -96,6 +96,7 @@ struct hsearch_data *ahttpd_mime_init()
 			BUG(NULL, "Error inserting mime data");
 		i++;
 	}
+	slog(2, SLOG_INFO, "Done generating mime index: %d entries", n);
 	return hs;
 }
 
@@ -127,4 +128,10 @@ const char *ahttpd_mime_guess(struct hsearch_data *instance, const char *filenam
 		return found->data;
 bailout:
 		return "application/octet-stream";
+}
+
+void *ahttpd_mime_destroy(struct hsearch_data *instance)
+{
+	hdestroy_r(instance);
+	free(instance);
 }

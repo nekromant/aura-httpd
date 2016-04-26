@@ -76,5 +76,6 @@ int ahttpd_buffer_from_json(struct aura_buffer *	buf,
 
 const char *ahttpd_mime_guess(struct hsearch_data *instance, const char *filename);
 struct hsearch_data *ahttpd_mime_init();
+void *ahttpd_mime_destroy(struct hsearch_data *instance);
 
 #endif

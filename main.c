@@ -127,5 +127,7 @@ int main (void) {
 	list_for_each_entry_safe(pos, tmp, &server->mountpoints, qentry) {
 		ahttpd_unmount(pos);
 	}
+	ahttpd_mime_destroy(server->mimedb);
+	free(server);
 	return 0;
 }
