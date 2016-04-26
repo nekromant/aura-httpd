@@ -52,3 +52,7 @@ TARGET_LINK_LIBRARIES(aurahttpd
 
 INSTALL(TARGETS aurahttpd
         DESTINATION bin)
+
+INSTALL(FILES config.json
+        DESTINATION etc/aura-httpd
+	RENAME default.conf)
