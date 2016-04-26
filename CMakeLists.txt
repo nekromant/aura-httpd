@@ -64,7 +64,7 @@ foreach(file ${UNITS})
       --error-exitcode=1 --read-var-info=yes
       --leak-check=full  --show-leak-kinds=all
       --undef-value-errors=no --xml=yes --xml-file=${f}.xml
-      ./${f})
+    ./test-${f})
   endif()
 endforeach(file)
 
