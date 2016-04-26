@@ -1,7 +1,7 @@
 {
-	"host": "127.0.0.1",
+	"host": "0.0.0.0",
 	"port": 8088,
-	"index": "/static/index.html",	
+	"index": "/static/index.html",
 	"mountpoints": [
 		 {
 		   "type": "control",
@@ -9,22 +9,17 @@
 		 },
 		 {
 		   "type": "node",
-		   "mountpoint": "/pickme",
+		   "mountpoint": "/dummy",
 		   "transport":  "dummy",
 		   "options": "blah",
-		 },
-		 {
-		   "type": "node",
-		   "mountpoint": "/usb",
-		   "transport":  "simpleusb",
-		   "options": "/home/necromant/.simpleusbconfigs/pw-ctl.conf",
 		 },
 		 {
 		   "type": "static",
 		   "mountpoint": "/static/",
 		   "dir": "../www",
-		   "index": "index.html2",
+		   "index": "index.html",
 		   "dirlist": "html",
 		 },
+
 	]
 }
