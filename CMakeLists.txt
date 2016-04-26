@@ -8,6 +8,7 @@ SET(SRCS
   vfs.c
   utils.c
   main.c
+  mime.c
   fs_control.c
   fs_node.c
   fs_static.c

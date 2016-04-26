@@ -21,6 +21,7 @@ struct ahttpd_server {
 	int                     port;
 	struct list_head        mountpoints;
 	char 					*index;
+	struct hsearch_data    *mimedb;
 };
 
 struct ahttpd_fs {
@@ -64,5 +65,16 @@ void ahttpd_reply_accepted(struct evhttp_request *request, const char *redir);
 //FixMe: Move these out
 void ahttpd_mount_control(struct event_base *ebase, struct evhttp *eserver, json_object *opts);
 void ahttpd_mount_node(struct event_base *ebase, struct evhttp *eserver, json_object *opts);
+
+
+/* JSON SERDES */
+json_object *ahttpd_format_to_json(const char *fmt);
+json_object *ahttpd_buffer_to_json(struct aura_buffer *buf, const char *fmt);
+int ahttpd_buffer_from_json(struct aura_buffer *	buf,
+		     struct json_object *	json,
+		     const char *		fmt);
+
+const char *ahttpd_mime_guess(struct hsearch_data *instance, const char *filename);
+struct hsearch_data *ahttpd_mime_init();
 
 #endif

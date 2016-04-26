@@ -91,7 +91,7 @@ struct dirindex dirindextypes[] = {
 };
 
 
-static int serve_file(struct evhttp_request *request, const char *dpath)
+static int serve_file(struct evhttp_request *request, const char *dpath, const char *mimetype)
 {
 	struct evbuffer *buffer;
 	long sz;
@@ -111,7 +111,7 @@ static int serve_file(struct evhttp_request *request, const char *dpath)
 		return -1;
 
 	struct evkeyvalq *headers = evhttp_request_get_output_headers(request);
-	evhttp_add_header(headers, "Content-Type", "text/html; charset=UTF-8");
+	evhttp_add_header(headers, "Content-Type", mimetype);
 //	evhttp_add_header(headers, "Server", LIBSRVR_SIGNATURE);
 
 	buffer = evbuffer_new();
@@ -152,12 +152,13 @@ void router(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint)
 				evhttp_send_error(r, 500, "Internal server fuckup. That's all I know");
 				goto bailout;
 			}
-			if (0 == serve_file(r, ipath))
+			if (0 == serve_file(r, ipath, "text/html; charset=UTF-8"))
 				return;
 		}
 		fsd->dirindexfunc(r, path, evhttp_request_get_uri(r));
 	} else {
-		serve_file(r, path);
+		const char *mimetype = ahttpd_mime_guess(mpoint->server->mimedb, path);
+		serve_file(r, path, mimetype);
 	}
 
 bailout:

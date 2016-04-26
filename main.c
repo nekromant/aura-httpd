@@ -106,6 +106,7 @@ int main (void) {
 	server->aloop   = aura_eventloop_create_empty();
 	server->ebase   = aura_eventloop_get_ebase(server->aloop);
 	server->eserver = evhttp_new (server->ebase);
+	server->mimedb  = ahttpd_mime_init();
 
 	INIT_LIST_HEAD(&server->mountpoints);
 	evhttp_set_allowed_methods (server->eserver, EVHTTP_REQ_GET);
