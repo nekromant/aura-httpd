@@ -4,10 +4,11 @@ PROJECT(aurahttpd)
 SET(PROJECT_VERSION   0.1.2)
 enable_testing()
 
-SET(SRCS
+SET(AHTTPD_TEST_LEAKS no CACHE BOOL "Valgrind for memory leaks during testing")
+
+SET(CORE_SRCS
   vfs.c
   utils.c
-  main.c
   serdes-json.c
   mime.c
   server.c
@@ -42,14 +43,34 @@ foreach(flag ${CMAKE_C_FLAGS_SPLIT})
   file(APPEND ${CMAKE_SOURCE_DIR}/.clang_complete "${flag}\n")
 endforeach()
 
-
-ADD_EXECUTABLE(aurahttpd ${SRCS})
-
-TARGET_LINK_LIBRARIES(aurahttpd
+ADD_LIBRARY(ahttpd STATIC ${CORE_SRCS})
+TARGET_LINK_LIBRARIES(ahttpd
     ${AURA_LIBRARIES}
     ${LIBEVENT_LIBRARIES}
     ${JSON_LIBRARIES}
 )
+
+file(GLOB UNITS
+    "${CMAKE_SOURCE_DIR}/tests/*.c"
+)
+
+foreach(file ${UNITS})
+  GET_FILENAME_COMPONENT(f ${file} NAME_WE)
+  ADD_EXECUTABLE(test-${f} ${file} ${CORE_SRCS})
+  TARGET_LINK_LIBRARIES(test-${f} ahttpd)
+  ADD_TEST(${f} test-${f})
+  if (AHTTPD_TEST_LEAKS)
+    ADD_TEST(memcheck-${f} valgrind
+      --error-exitcode=1 --read-var-info=yes
+      --leak-check=full  --show-leak-kinds=all
+      --undef-value-errors=no --xml=yes --xml-file=${f}.xml
+      ./${f})
+  endif()
+endforeach(file)
+
+
+ADD_EXECUTABLE(aurahttpd ${CORE_SRCS} main.c)
+TARGET_LINK_LIBRARIES(aurahttpd ahttpd)
 
 INSTALL(TARGETS aurahttpd
         DESTINATION bin)
