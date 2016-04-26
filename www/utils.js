@@ -1,5 +1,7 @@
 var currentNode;
 var currentMethods;
+var automaticRefresh = false;
+var automaticRefreshPending = false;
 
 function syntaxHighlight(json) {
     if (typeof json != 'string') {
@@ -84,7 +86,7 @@ function nodeSubmitCall() {
 
 function updateArgHint() {
     var method = currentMethods[$("#call-method-name").val()];
-     $("#call-method-arghint").html("");
+    $("#call-method-arghint").html("");
     if (method) {
         $("#node-method-list li").addClass('ui-screen-hidden');
         method.afmt.forEach(function(item, i, arr) {
@@ -98,15 +100,13 @@ function updateArgHint() {
     //if (currentMethods[])
 }
 
-function nodeShowWelcome()
-{
+function nodeShowWelcome() {
     disableNodeMenu();
     $('.pagedata').hide();
     $('#content-welcome').show();
 }
 
-function showError(title, text)
-{
+function showError(title, text) {
     $("#error-title").html(title);
     $("#error-text").html(text);
     $('#error-message').popup();
@@ -119,7 +119,7 @@ function nodeShowCallUi() {
     $("#content-call").show();
     $("#node-method-list").html("")
     $("#node-method-list li").addClass('ui-screen-hidden');
-    currentMethods={};
+    currentMethods = {};
     var uri = currentNode.mountpoint + "/exports";
     $.ajax({
         url: uri,
@@ -189,7 +189,6 @@ function updateNodeState(nodepath) {
     });
 }
 
-
 function uiReload() {
     $.ajax({
         url: "/control/fstab",
@@ -202,10 +201,10 @@ function uiReload() {
                 var taget;
                 var mpnt = item.mountpoint.replace("\/", "-");
                 mpnt = mpnt.replace("\/", "-");
-
                 var newli = $("<a href=\"#\">")
                     .append(item.mountpoint)
                     .addClass("ui-btn ")
+                    .addClass("node-button")
                     .addClass("node-button-" + mpnt)
                     .click(function() {
                         showNode(item)
@@ -219,26 +218,16 @@ function uiReload() {
                 } else {
                     target = ".mpointlist"
                 }
-
                 $(target).append(newli);
-
             });
-
         }
     });
 
-    $.ajax({
-        url: '/control/version',
-        //        data:{"id":id},
-        type: 'GET',
-
-        success: function(data) {
-            html = "<center>" + data['aura_version'] + " (" + data['aura_versioncode'] + ")" + "</center>"
-            $('.version').replaceWith(html);
-        }
-    });
-
+    if ($("#autorefresh").is(":checked")) {
+        setTimeout(uiReload, 1000);
+    }
 }
+
 
 $(document).on("pageinit", "#mainpage", function() {
     //$('#error-message').popup();
@@ -256,5 +245,17 @@ $(document).on("pageinit", "#mainpage", function() {
     });
 });
 
-uiReload();
+
 disableNodeMenu();
+uiReload();
+
+$.ajax({
+    url: '/control/version',
+    //        data:{"id":id},
+    type: 'GET',
+
+    success: function(data) {
+        html = "<center>" + data['aura_version'] + " (" + data['aura_versioncode'] + ")" + "</center>"
+        $('.version').replaceWith(html);
+    }
+});
