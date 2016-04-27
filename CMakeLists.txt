@@ -3,8 +3,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(aurahttpd)
 SET(PROJECT_VERSION   0.1.2)
 enable_testing()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 SET(AHTTPD_TEST_LEAKS no CACHE BOOL "Valgrind for memory leaks during testing")
+SET(AHTTPD_COVERALLS no CACHE BOOL "Generate coveralls data")
 
 SET(CORE_SRCS
   vfs.c
@@ -31,6 +33,16 @@ INCLUDE_DIRECTORIES(
     ${JSON_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include
 )
+
+ADD_LIBRARY(aura OBJECT ${CORE_SRCS})
+if (AHTTPD_COVERALLS)
+    include(Coveralls)
+    coveralls_turn_on_coverage()
+    coveralls_setup(
+       "${CORE_SRCS}" # The source files.
+       ON                 # If we should upload.
+       )
+endif()
 
 message(STATUS "Generarating ${CMAKE_SOURCE_DIR}/.clang_complete")
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)

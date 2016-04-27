@@ -1,5 +1,7 @@
 [![Build Status](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/badge/icon)](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/)
 
+[![Coverage Status](https://coveralls.io/repos/github/nekromant/aura-httpd/badge.svg?branch=master)](https://coveralls.io/github/nekromant/aura-httpd?branch=master)
+
 # AURA-HTTPD
 
 AURA-HTTPD provides a simple way to bring aura to the world of the WEB automatically creating a fun, easy to use REST API out of the methods you've exported from an aura node. It's still WIP and not yet usable
