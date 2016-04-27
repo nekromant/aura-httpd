@@ -47,7 +47,7 @@ struct ahttpd_mountpoint {
 void ahttpd_filesystem_register(struct ahttpd_fs *fs);
 int ahttpd_mount(struct ahttpd_server *server, json_object *opts);
 void ahttpd_unmount(struct ahttpd_mountpoint *mp);
-void ahttpd_allow_method(struct evhttp_request *request, enum evhttp_cmd_type tp);
+int ahttpd_method_allowed(struct evhttp_request *request, enum evhttp_cmd_type tp);
 void ahttpd_redirect_cb(struct evhttp_request *request, void *arg);
 
 struct json_object *json_find(json_object *arr, char *k);

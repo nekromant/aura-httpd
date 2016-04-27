@@ -178,6 +178,33 @@ void call_completed_cb(struct aura_node *node, int result, struct aura_buffer *r
 	}
 }
 
+
+static struct json_object *extract_json_from_request(struct evhttp_request *request)
+{
+	const char *jsonargs = NULL;
+	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
+	enum evhttp_cmd_type tp =  evhttp_request_get_command(request);
+
+	if (tp == EVHTTP_REQ_GET) {
+		jsonargs = evhttp_uri_get_query(uri);
+		if (!jsonargs)
+			return NULL;
+		jsonargs = evhttp_uridecode(jsonargs, 1, NULL);
+	} else if (tp == EVHTTP_REQ_POST) {
+		/* TODO: ... */
+	}
+
+	if (!jsonargs)
+		return NULL;
+
+	enum json_tokener_error error = json_tokener_success;
+	json_object *ret = json_tokener_parse_verbose(jsonargs, &error);
+	free(jsonargs);
+	if (error != json_tokener_success)
+		return NULL;
+	return ret;
+}
+
 static void issue_call(struct evhttp_request *request, void *arg)
 {
 	int ret;
@@ -185,27 +212,24 @@ static void issue_call(struct evhttp_request *request, void *arg)
 	struct nodefs_data *nd = mpoint->fsdata;
 	struct aura_node *node = nd->node;
 	struct aura_object *o;
-	char *jsonargs = NULL;
+
 	struct json_object *reply = NULL;
 	struct json_object *result = NULL;
 	struct json_object *why = NULL;
 
-	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
+	if (!ahttpd_method_allowed(request, EVHTTP_REQ_GET | EVHTTP_REQ_PUT))
+		return;
 
-	jsonargs = evhttp_uri_get_query(uri);
-	if (!jsonargs) {
+	struct json_object *args = extract_json_from_request(request);
+	if (!args) {
 		result = json_object_new_string("error");
-		why = json_object_new_string("missing call parameters");
+		why = json_object_new_string("Failed to extract JSON data from request");
 		goto bailout;
 	}
 
-	jsonargs = evhttp_uridecode(jsonargs, 1, NULL);
-	enum json_tokener_error error = json_tokener_success;
+	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
 	const char *name = evhttp_uri_get_path(uri);
-
 	name = &name[strlen(mpoint->mountpoint) + strlen("/call/")];
-
-	ahttpd_allow_method(request, EVHTTP_REQ_GET);
 
 	o = aura_etable_find(node->tbl, name);
 	if (!o) {
@@ -214,16 +238,10 @@ static void issue_call(struct evhttp_request *request, void *arg)
 		goto bailout;
 	}
 
-	json_object *args = json_tokener_parse_verbose(jsonargs, &error);
-	if (error != json_tokener_success) {
-		result = json_object_new_string("error");
-		why = json_object_new_string("problem parsing params");
-		goto bailout;
-	}
 	struct aura_buffer *buf = aura_buffer_request(node, o->arglen);
 	ret = ahttpd_buffer_from_json(buf, args, o->arg_fmt);
 	if (ret != 0) {
-		slog(0, SLOG_WARN, "Problem marshalling data, ret %d data %s ", ret, jsonargs);
+		slog(0, SLOG_WARN, "Problem marshalling data, ret %d ");
 		result = json_object_new_string("error");
 		why = json_object_new_string("problem marshalling data");
 		goto bailout;
@@ -247,8 +265,6 @@ static void issue_call(struct evhttp_request *request, void *arg)
 	}
 
 bailout:
-	if (jsonargs)
-		free(jsonargs);
 
 	if (result || why)
 		reply = json_object_new_object();

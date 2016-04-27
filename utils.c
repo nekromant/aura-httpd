@@ -25,10 +25,12 @@ const char *json_find_string(json_object *o, char *k)
 	return json_object_get_string(tmp);
 }
 
-void ahttpd_allow_method(struct evhttp_request *request, enum evhttp_cmd_type tp)
+int ahttpd_method_allowed(struct evhttp_request *request, enum evhttp_cmd_type tp)
 {
-	if (tp != evhttp_request_get_command(request))
+	int ret = (tp & evhttp_request_get_command(request));
+	if (!ret)
 		evhttp_send_error(request, 405, "Method not allowed. Check ur docs");
+	return ret;
 }
 
 void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path,
