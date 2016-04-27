@@ -1,6 +1,4 @@
-[![Build Status](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/badge/icon)](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/)
-
-[![Coverage Status](https://coveralls.io/repos/github/nekromant/aura-httpd/badge.svg?branch=master)](https://coveralls.io/github/nekromant/aura-httpd?branch=master)
+[![Build Status](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/badge/icon)](https://jenkins.ncrmnt.org/job/GithubCI/job/aura-httpd/) [![Coverage Status](https://coveralls.io/repos/github/nekromant/aura-httpd/badge.svg?branch=HEAD)](https://coveralls.io/github/nekromant/aura-httpd?branch=HEAD)
 
 # AURA-HTTPD
 
