@@ -95,6 +95,6 @@ void ahttpd_redirect_cb(struct evhttp_request *request, void *arg)
 	struct evkeyvalq *headers = evhttp_request_get_output_headers(request);
 	evhttp_add_header(headers, "Location", arg);
 	struct evbuffer *buf = evbuffer_new();
-	evbuffer_add_printf(buf, "Redirecting to %s", arg);
+	evbuffer_add_printf(buf, "Redirecting to %s", (char *) arg);
 	evhttp_send_reply(request, HTTP_MOVETEMP, "Redirect", buf);
 }

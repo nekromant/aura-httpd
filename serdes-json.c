@@ -118,6 +118,7 @@ case cs: \
 		case URPC_BIN:
 			len = atoi(fmt);
 			tmp = json_object_new_string("buffer");
+			slog(0, SLOG_WARN, "Ignoring %d byte buffer - not implemented", len);
 			while (*fmt && (*fmt++ != '.'));
 			break;
 		case 0x0:
@@ -152,7 +153,6 @@ int ahttpd_buffer_from_json(struct aura_buffer *	buf,
 		     const char *		fmt)
 {
 	int i = 0;
-	enum json_type tp;
 
 	if (!json_object_is_type_log(json, json_type_array))
 		return -1;
@@ -201,6 +201,7 @@ case cs: \
 			break;
 		case URPC_BIN:
 			len = atoi(fmt);
+			slog(0, SLOG_WARN, "Ignoring %d byte buffer - not implemented", len);
 			BUG(NULL, "Not implemented");
 			while (*fmt && (*fmt++ != '.'));
 			break;

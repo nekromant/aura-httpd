@@ -130,7 +130,7 @@ bailout:
 		return "application/octet-stream";
 }
 
-void *ahttpd_mime_destroy(struct hsearch_data *instance)
+void ahttpd_mime_destroy(struct hsearch_data *instance)
 {
 	hdestroy_r(instance);
 	free(instance);

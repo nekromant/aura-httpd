@@ -165,8 +165,6 @@ struct pending_call_resource *call_resource_create(struct ahttpd_mountpoint *mpo
 void call_completed_cb(struct aura_node *node, int result, struct aura_buffer *retbuf, void *arg)
 {
 	struct pending_call_resource *res = arg;
-	struct ahttpd_mountpoint *mpoint = aura_get_userdata(node);
-	struct nodefs_data *nd = mpoint->fsdata;
 
 	res->retbuf = json_object_new_object();
 
@@ -181,15 +179,15 @@ void call_completed_cb(struct aura_node *node, int result, struct aura_buffer *r
 
 static struct json_object *extract_json_from_request(struct evhttp_request *request)
 {
-	const char *jsonargs = NULL;
+	char *jsonargs = NULL;
 	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
 	enum evhttp_cmd_type tp =  evhttp_request_get_command(request);
 
 	if (tp == EVHTTP_REQ_GET) {
-		jsonargs = evhttp_uri_get_query(uri);
-		if (!jsonargs)
+		const char *query = evhttp_uri_get_query(uri);
+		if (!query)
 			return NULL;
-		jsonargs = evhttp_uridecode(jsonargs, 1, NULL);
+		jsonargs = evhttp_uridecode(query, 1, NULL);
 	} else if (tp == EVHTTP_REQ_POST) {
 		/* TODO: ... */
 	}
