@@ -19,22 +19,19 @@ static void version(struct evhttp_request *request, void *arg)
 	json_object_put(root);
 }
 
+void terminate_rq_close_cb(struct evhttp_connection *con, void *arg)
+{
+		aura_eventloop_break(arg);
+}
+
 static void terminate(struct evhttp_request *request, void *arg)
 {
 		struct ahttpd_mountpoint *mpoint = arg;
-		json_object *root = json_object_new_object();
-		json_object *ok =  json_object_new_string("OK");
-		ahttpd_reply_with_json(request, ok);
-		json_object_put(root);
 		slog(0, SLOG_WARN, "Got termination requst from web interface");
 
-		/* Now, schedule the actual shutdown */
-		struct timeval timeout;
-		timeout.tv_sec=1;
-		timeout.tv_usec=0;
-
-		//event_base_loopexit(mpoint->server->ebase, &timeout);
-		aura_eventloop_break(mpoint->server->aloop);
+		struct evhttp_connection *con = evhttp_request_get_connection(request);
+		evhttp_connection_set_closecb(con, terminate_rq_close_cb, mpoint->server->aloop);
+		evhttp_send_error(request, 503, "Shutting down");
 }
 
 
