@@ -102,8 +102,8 @@ struct ahttpd_server *ahttpd_server_create(struct json_object *config)
 		evhttp_set_cb(server->eserver, "/", ahttpd_redirect_cb, server->index);
 
 	if (evhttp_bind_socket(server->eserver, server->host, server->port) != 0)
-		BUG(NULL, "I tried hard, but I could not bind to %s:%d, sorry(");
-
+		BUG(NULL, "I tried hard, but I could not bind to %s:%d, sorry(",
+		server->host, server->port);
 	return server;
 }
 
@@ -119,7 +119,7 @@ void ahttpd_server_destroy(struct ahttpd_server *server)
 		free(server->host);
 	if (server->index)
 		free(server->index);
-		
+
 	evhttp_free(server->eserver);
 	aura_eventloop_destroy(server->aloop);
 	ahttpd_mime_destroy(server->mimedb);
