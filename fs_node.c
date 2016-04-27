@@ -91,18 +91,23 @@ err_no_mem:
 	return NULL;
 }
 
-
-void call_resource_delete(int fd, short event, void *arg)
+void call_resource_delete(struct pending_call_resource *res)
 {
-	struct pending_call_resource *res = arg;
-
-	slog(4, SLOG_DEBUG, "Garbage-collecting resource %s", res->path);
 	list_del(&res->qentry);
-	event_del(res->devt);
+	if (res->devt)
+		event_del(res->devt);
 	evhttp_del_cb(res->mp->server->eserver, res->path);
 	json_object_put(res->retbuf);
 	free(res->path);
 	free(res);
+}
+
+void call_resource_delete_cb(int fd, short event, void *arg)
+{
+	struct pending_call_resource *res = arg;
+
+	slog(4, SLOG_DEBUG, "Garbage-collecting resource %s", res->path);
+	call_resource_delete(res);
 }
 
 static void resource_readout(struct evhttp_request *request, void *arg)
@@ -120,7 +125,7 @@ static void resource_readout(struct evhttp_request *request, void *arg)
 		struct timeval tv;
 		tv.tv_sec = 3;
 		tv.tv_usec = 0;
-		res->devt = evtimer_new(res->mp->server->ebase, call_resource_delete, res);
+		res->devt = evtimer_new(res->mp->server->ebase, call_resource_delete_cb, res);
 		evtimer_add(res->devt, &tv);
 		/* If this resource gets called before it's freed - tell 'em we're dead */
 		res->resource_status = "dead";
@@ -275,12 +280,12 @@ static void callpath_delete(const struct aura_object *o, struct ahttpd_mountpoin
 
 	if (-1 == asprintf(&callpath, "/call/%s", o->name))
 		BUG(NULL, "Out of memory");
-	ahttpd_add_path(mpoint, callpath, issue_call, (void *)o);
+	ahttpd_del_path(mpoint, callpath);
 	free(callpath);
 }
 
-static void etable_delete_callpaths(struct ahttpd_mountpoint *mpoint,
-									const struct aura_export_table *old)
+static void etable_delete_callpaths(struct ahttpd_mountpoint *		mpoint,
+				    const struct aura_export_table *	old)
 {
 	int i;
 	struct nodefs_data *nd = mpoint->fsdata;
@@ -295,11 +300,15 @@ static void etable_delete_callpaths(struct ahttpd_mountpoint *mpoint,
 		callpath_delete(&old->objects[i], mpoint);
 }
 
-static void etable_create_callpaths(struct ahttpd_mountpoint *mpoint,
-									const struct aura_export_table *new)
+static void etable_create_callpaths(struct ahttpd_mountpoint *		mpoint,
+				    const struct aura_export_table *	new)
 {
 	int i;
 	struct nodefs_data *nd = mpoint->fsdata;
+
+	if (!new)
+		return;
+
 	nd->etable = json_object_new_array();
 	for (i = 0; i < new->next; i++) {
 		const struct aura_object *o = &new->objects[i];
@@ -317,13 +326,10 @@ static void etbl_changed_cb(struct aura_node *		node,
 			    void *			arg)
 {
 	struct ahttpd_mountpoint *mpoint = arg;
-	struct nodefs_data *nd = mpoint->fsdata;
-	int i;
 
 	slog(4, SLOG_DEBUG, "Aura reports etable change - propagating");
 	etable_delete_callpaths(mpoint, old);
 	etable_create_callpaths(mpoint, new);
-
 }
 
 static void exports(struct evhttp_request *request, void *arg)
@@ -419,12 +425,8 @@ static void node_unmount(struct ahttpd_mountpoint *mpoint)
 	ahttpd_del_path(mpoint, "/events");
 	ahttpd_del_path(mpoint, "/status");
 
-	if (nd->node) {
-		etable_delete_callpaths(mpoint, nd->node->tbl);
+	if (nd->node)
 		aura_close(nd->node);
-	}
-	if (nd->etable)
-		json_object_put(nd->etable);
 }
 
 static struct ahttpd_fs nodefs =

@@ -81,10 +81,11 @@ void ahttpd_unmount(struct ahttpd_mountpoint *mp)
 {
 	slog(4, SLOG_DEBUG, "Unmounting %s", mp->mountpoint);
 	mp->fs->unmount(mp);
+	json_object_put(mp->props);
 	list_del(&mp->qentry);
 	if (mp->fsdata)
 		free(mp->fsdata);
-	json_object_put(mp->props);
+
 	free(mp);
 }
 

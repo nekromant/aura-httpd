@@ -68,9 +68,27 @@ foreach(file ${UNITS})
   endif()
 endforeach(file)
 
+file(GLOB TEST_SCRIPTS
+    "${CMAKE_SOURCE_DIR}/test-scripts/*.sh"
+)
+
+foreach(file ${TEST_SCRIPTS})
+  GET_FILENAME_COMPONENT(f ${file} NAME_WE)
+  ADD_TEST(script-${f} ahttpd-test-wrapper "../config-test.json" ${file})
+  if (AHTTPD_TEST_LEAKS)
+    ADD_TEST(memcheck-${f} valgrind
+      --error-exitcode=1 --read-var-info=yes
+      --leak-check=full  --show-leak-kinds=all
+      --undef-value-errors=no --xml=yes --xml-file=${f}.xml
+    ./ahttpd-test-wrapper "../config-test.json" ${file})
+  endif()
+endforeach(file)
 
 ADD_EXECUTABLE(aurahttpd ${CORE_SRCS} main.c)
 TARGET_LINK_LIBRARIES(aurahttpd ahttpd)
+
+ADD_EXECUTABLE(ahttpd-test-wrapper ${CORE_SRCS} test-wrapper.c)
+TARGET_LINK_LIBRARIES(ahttpd-test-wrapper ahttpd)
 
 INSTALL(TARGETS aurahttpd
         DESTINATION bin)

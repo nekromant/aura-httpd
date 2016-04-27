@@ -46,10 +46,11 @@ void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path,
 void ahttpd_del_path(struct ahttpd_mountpoint *mpoint, const char *path)
 {
 	char *str;
-	int ret = asprintf(&str, "%s/%s", mpoint->mountpoint, path);
+	int ret = asprintf(&str, "%s%s", mpoint->mountpoint, path);
 	if (ret == -1)
 		BUG(NULL, "asprintf() failed!");
 
+	slog(4, SLOG_DEBUG, "Removing path %s ", str);
 	evhttp_del_cb (mpoint->server->eserver, str);
 	free(str);
 }

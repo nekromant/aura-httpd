@@ -1,0 +1,7 @@
+URL=http://127.0.0.1:8088
+
+fetch()
+{
+    echo "[!] Fetch $1"
+    wget ${URL}$1 -o/dev/null -O/dev/null
+}
