@@ -1,0 +1,37 @@
+{
+	"host": "0.0.0.0",
+	"port": 8088,
+	"index": "/static/index.html",
+	"mountpoints": [
+		 {
+		   "type": "control",
+		   "mountpoint": "/control",
+		 },
+		 {
+		   "type": "node",
+		   "mountpoint": "/online",
+		   "transport":  "dummy",
+		   "options": "blah",
+		 },
+		 {
+		   "type": "node",
+		   "mountpoint": "/offline",
+		   "transport":  "usb",
+		   "options": "1d50:6032;www.ncrmnt.org;aura-usb-test-rig;",
+		 },
+		 {
+		   "type": "node",
+		   "mountpoint": "/invalid",
+		   "transport":  "invalid",
+		   "options": "invalid",
+		 },
+		 {
+		   "type": "static",
+		   "mountpoint": "/static/",
+		   "dir": "../www",
+		   "index": "index.html",
+		   "dirlist": "html",
+		 },
+
+	]
+}

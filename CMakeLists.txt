@@ -58,13 +58,13 @@ foreach(file ${UNITS})
   GET_FILENAME_COMPONENT(f ${file} NAME_WE)
   ADD_EXECUTABLE(test-${f} ${file} ${CORE_SRCS})
   TARGET_LINK_LIBRARIES(test-${f} ahttpd)
-  ADD_TEST(${f} test-${f})
+  ADD_TEST(${f} test-${f} "../config-test.json")
   if (AHTTPD_TEST_LEAKS)
     ADD_TEST(memcheck-${f} valgrind
       --error-exitcode=1 --read-var-info=yes
       --leak-check=full  --show-leak-kinds=all
       --undef-value-errors=no --xml=yes --xml-file=${f}.xml
-    ./test-${f})
+    ./test-${f} "../config-test.json")
   endif()
 endforeach(file)
 
