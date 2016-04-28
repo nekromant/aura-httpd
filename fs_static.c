@@ -142,7 +142,7 @@ void router(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint)
 	int ret = stat(path, &sbuf);
 	if (ret != 0) {
 		evhttp_send_error(r, 404, "We searched hard but never found love");
-		return;
+		goto bailout;
 	}
 
 	if (S_ISDIR(sbuf.st_mode)) {
@@ -153,7 +153,7 @@ void router(struct evhttp_request *r, struct ahttpd_mountpoint *mpoint)
 				goto bailout;
 			}
 			if (0 == serve_file(r, ipath, "text/html; charset=UTF-8"))
-				return;
+				goto bailout;
 		}
 		fsd->dirindexfunc(r, path, evhttp_request_get_uri(r));
 	} else {
