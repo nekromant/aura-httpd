@@ -35,11 +35,7 @@ function auraCall(nodepath, method, args, handler) {
             handler(status, err);
         },
         success: function(data, status, xhr) {
-            if (!data.result) {
-                var loc = xhr.getResponseHeader('Location');
-                doPollForResult(loc, handler);
-            } else
-                handler(status, data)
+            handler(status, data);
         }
     });
 }
