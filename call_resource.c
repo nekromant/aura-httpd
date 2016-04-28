@@ -31,7 +31,7 @@ static void resource_readout(struct evhttp_request *request, void *arg)
 		/* In the rare case something reads it before we've deleted the path */
 		res->resource_status = "dead";
 		/* And schedule resource deletion once connection's closed */
-		struct evhttp_connection *con = evhttp_request_get_connection(res->request);
+		struct evhttp_connection *con = evhttp_request_get_connection(request);
 		if (!con)
 			BUG(NULL, "WTF?");
 		evhttp_connection_set_closecb(con, conn_close_cb, res);
