@@ -188,7 +188,7 @@ static int cfs_mount(struct ahttpd_mountpoint *mpoint)
 
 	int i=0;
 	fsd->dirindexfunc = index_none;
-	while (dirindextypes[i].name != NULL) {
+	while (dirindex && (dirindextypes[i].name != NULL)) {
 		if (strcmp(dirindextypes[i].name, dirindex)==0) {
 			fsd->dirindexfunc = dirindextypes[i].dirindexfunc;
 			slog(2, SLOG_INFO, "Using %s directory index", dirindex);
