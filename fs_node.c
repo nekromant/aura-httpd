@@ -131,6 +131,7 @@ static void issue_call(struct evhttp_request *request,
 	}
 
 	ahttpd_call_create(mpoint, request, o, args, is_async);
+	json_object_put(args);
 }
 
 static const char *get_call_methodname(struct ahttpd_mountpoint *mpoint,
