@@ -15,5 +15,9 @@ fetch /online/status
 fetch /offline/status
 fetch /invalid/status
 
+fetch /static/
+fetch /static-json/
+fetch /static-none/
+fetch /static-na/
 
 fetch /control/terminate
