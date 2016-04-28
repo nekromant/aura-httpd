@@ -2,6 +2,7 @@
 
 . ../test-scripts/common
 
+fetch /
 fetch /control/version
 fetch /control/fstab
 fetch /static/index.html
