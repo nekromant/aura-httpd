@@ -34,23 +34,26 @@
 		 },
 		 {
 		   "type": "static",
+		   "mountpoint": "/static-html/",
+		   "dir": "../www",
+		   "dirlist": "html",
+		 },
+		 {
+		   "type": "static",
 		   "mountpoint": "/static-json/",
 		   "dir": "../www",
-		   "index": "index.html",
 		   "dirlist": "json",
 		 },
 		 {
 		   "type": "static",
 		   "mountpoint": "/static-none/",
 		   "dir": "../www",
-		   "index": "index.html",
 		   "dirlist": "none",
 		 },
 		 {
 		   "type": "static",
 		   "mountpoint": "/static-na/",
 		   "dir": "../www",
-		   "index": "index.html",
 		 },
 
 	]

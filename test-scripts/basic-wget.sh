@@ -17,6 +17,7 @@ fetch /invalid/status
 
 fetch /static/
 fetch /static-json/
+fetch /static-html/
 fetch /static-none/
 fetch /static-na/
 
