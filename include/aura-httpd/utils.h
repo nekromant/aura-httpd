@@ -44,6 +44,36 @@ struct ahttpd_mountpoint {
 };
 
 
+struct nodefs_data {
+	struct aura_node *	node;
+	struct json_object *	etable;
+	struct list_head	pending_call_list;
+	struct list_head	gc_call_list;
+	int			callid;
+};
+
+struct ahttpd_pending_call {
+	struct list_head		qentry;
+	int				callid;
+	struct aura_object *		o;
+	char *				path;
+	struct ahttpd_mountpoint *	mp;
+	int is_async;
+	struct evhttp_request *request;
+	/* Return values from aura */
+	struct json_object *		retbuf;
+	const char *			resource_status; /* pending or dead ? */
+	struct event *			devt;
+};
+
+
+struct ahttpd_pending_call *ahttpd_call_create(struct ahttpd_mountpoint *mpoint,
+					       struct evhttp_request *request,
+					       struct aura_object *o, struct json_object *args,
+					       int is_async);
+void ahttpd_call_delete(struct ahttpd_pending_call *res);
+
+
 void ahttpd_filesystem_register(struct ahttpd_fs *fs);
 int ahttpd_mount(struct ahttpd_server *server, json_object *opts);
 void ahttpd_unmount(struct ahttpd_mountpoint *mp);

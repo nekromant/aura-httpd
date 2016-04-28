@@ -14,6 +14,7 @@ SET(CORE_SRCS
   serdes-json.c
   mime.c
   server.c
+  call_resource.c
   fs_control.c
   fs_node.c
   fs_static.c
