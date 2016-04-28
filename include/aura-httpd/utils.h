@@ -63,7 +63,6 @@ struct ahttpd_pending_call {
 	/* Return values from aura */
 	struct json_object *		retbuf;
 	const char *			resource_status; /* pending or dead ? */
-	struct event *			devt;
 };
 
 

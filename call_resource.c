@@ -9,6 +9,12 @@
 #include <unistd.h>
 #include <aura-httpd/utils.h>
 
+void conn_close_cb(struct evhttp_connection *con, void *arg)
+{
+	struct ahttpd_pending_call *res = arg;
+	slog(0, SLOG_DEBUG, "GC Temporary resource %s", res->path);
+	ahttpd_call_delete(res);
+}
 
 static void resource_readout(struct evhttp_request *request, void *arg)
 {
@@ -22,14 +28,13 @@ static void resource_readout(struct evhttp_request *request, void *arg)
 		 * gc list to be freed later */
 		list_del(&res->qentry);
 		list_add_tail(&res->qentry, &nd->gc_call_list);
-
-//		struct timeval tv;
-//		tv.tv_sec = 3;
-//		tv.tv_usec = 0;
-//		res->devt = evtimer_new(res->mp->server->ebase, call_resource_delete_cb, res);
-//		evtimer_add(res->devt, &tv);
-		/* If this resource gets called before it's freed - tell 'em we're dead */
+		/* In the rare case something reads it before we've deleted the path */
 		res->resource_status = "dead";
+		/* And schedule resource deletion once connection's closed */
+		struct evhttp_connection *con = evhttp_request_get_connection(res->request);
+		if (!con)
+			BUG(NULL, "WTF?");
+		evhttp_connection_set_closecb(con, conn_close_cb, res);
 	} else {
 		struct json_object *tmp = json_object_new_object();
 		struct json_object *result_json = json_object_new_string(res->resource_status);
@@ -54,13 +59,6 @@ struct json_object *call_result_to_json(int result, struct aura_object *o,
 	return ret;
 }
 
-void conn_close_cb(struct evhttp_connection *con, void *arg)
-{
-	struct ahttpd_pending_call *res = arg;
-	slog(0, SLOG_DEBUG, "GC connection object %s", res->path);
-	ahttpd_call_delete(res);
-}
-
 void call_completed_cb(struct aura_node *node, int result, struct aura_buffer *retbuf, void *arg)
 {
 	struct ahttpd_pending_call *res = arg;
@@ -80,8 +78,6 @@ void call_completed_cb(struct aura_node *node, int result, struct aura_buffer *r
 void ahttpd_call_delete(struct ahttpd_pending_call *res)
 {
 	list_del(&res->qentry);
-	if (res->devt)
-		event_del(res->devt);
 	evhttp_del_cb(res->mp->server->eserver, res->path);
 	json_object_put(res->retbuf);
 	free(res->path);
@@ -134,7 +130,8 @@ struct ahttpd_pending_call *ahttpd_call_create(struct ahttpd_mountpoint *mpoint,
 
 	slog(4, SLOG_DEBUG, "Created temporary resource %s for %s", res->path, o->name);
 	list_add_tail(&res->qentry, &nd->pending_call_list);
-
+	if (is_async)
+		ahttpd_reply_accepted(request, res->path);
 	return res;
 bailout:
 	free(res);

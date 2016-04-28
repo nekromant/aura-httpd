@@ -133,11 +133,12 @@ static void issue_call(struct evhttp_request *request,
 	ahttpd_call_create(mpoint, request, o, args, is_async);
 }
 
-static const char *get_call_methodname(struct ahttpd_mountpoint *mpoint, struct evhttp_request *request, char *basepath)
+static const char *get_call_methodname(struct ahttpd_mountpoint *mpoint,
+	struct evhttp_request *request, char *basepath)
 {
 	const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(request);
 	const char *name = evhttp_uri_get_path(uri);
-	name = &name[strlen(mpoint->mountpoint) + strlen("/call/")];
+	name = &name[strlen(mpoint->mountpoint) + strlen(basepath)];
 	return name;
 }
 
@@ -177,6 +178,10 @@ static void callpath_delete(const struct aura_object *o, struct ahttpd_mountpoin
 	char *callpath;
 
 	if (-1 == asprintf(&callpath, "/call/%s", o->name))
+		BUG(NULL, "Out of memory");
+	ahttpd_del_path(mpoint, callpath);
+	free(callpath);
+	if (-1 == asprintf(&callpath, "/acall/%s", o->name))
 		BUG(NULL, "Out of memory");
 	ahttpd_del_path(mpoint, callpath);
 	free(callpath);
