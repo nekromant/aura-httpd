@@ -91,8 +91,14 @@ static struct json_object *extract_json_from_request(struct evhttp_request *requ
 		if (!query)
 			return NULL;
 		jsonargs = evhttp_uridecode(query, 1, NULL);
-	} else if (tp == EVHTTP_REQ_POST) {
-		/* TODO: ... */
+	} else if (tp == EVHTTP_REQ_PUT) {
+		size_t len = evbuffer_get_length(evhttp_request_get_input_buffer(request));
+	    struct evbuffer *in_evb = evhttp_request_get_input_buffer(request);
+	    jsonargs = malloc(len + 1);
+		if (!jsonargs)
+			BUG(NULL, "malloc() failed");
+	    evbuffer_copyout(in_evb, jsonargs, len);
+		jsonargs[len]=0x0;
 	}
 
 	if (!jsonargs)

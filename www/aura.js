@@ -29,7 +29,7 @@ function doPollForResult(uri, callback) {
 function auraCall(nodepath, method, args, handler) {
     $.ajax({
         url: nodepath + "/call/" + method,
-        type: 'GET',
+        type: 'PUT',
         data: args,
         error: function(xhr, status, err){
             handler(status, err);
