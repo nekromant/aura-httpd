@@ -78,28 +78,27 @@ json_object *ahttpd_buffer_to_json(struct aura_buffer *buf, const char *fmt)
 	if (!ret)
 		return NULL;
 
-	union {
-		uint8_t u8;
-		uint8_t u16;
-		uint8_t u32;
-		uint8_t u64;
-		int8_t	s8;
-		int8_t	s16;
-		int8_t	s32;
-		int8_t	s64;
-	} var;
+		union {
+			uint8_t u8;
+			uint16_t u16;
+			uint32_t u32;
+			uint64_t u64;
+			int8_t	s8;
+			int16_t	s16;
+			int32_t	s32;
+			int64_t	s64;
+		} var;
 
 #define FETCH_VAR_IN_CASE(cs, sz) \
 case cs: \
 	var.sz = aura_buffer_get_ ## sz(buf); \
-	tmp = json_object_new_int(var.sz); \
+	tmp = json_object_new_int64(var.sz); \
 	break;
 
 	if (!fmt)
 		return ret;
 	while (*fmt) {
 		int len;
-		slog(0, SLOG_DEBUG, "FMT %s", fmt);
 		struct json_object *tmp = NULL;
 		switch (*fmt++) {
 			FETCH_VAR_IN_CASE(URPC_U8, u8);
@@ -162,13 +161,13 @@ int ahttpd_buffer_from_json(struct aura_buffer *	buf,
 
 	union {
 		uint8_t u8;
-		uint8_t u16;
-		uint8_t u32;
-		uint8_t u64;
+		uint16_t u16;
+		uint32_t u32;
+		uint64_t u64;
 		int8_t	s8;
-		int8_t	s16;
-		int8_t	s32;
-		int8_t	s64;
+		int16_t	s16;
+		int32_t	s32;
+		int64_t	s64;
 	} var;
 
 #define PUT_VAR_IN_CASE(cs, sz) \
@@ -183,7 +182,6 @@ case cs: \
 
 	while (*fmt) {
 		int len;
-		slog(0, SLOG_DEBUG, "FMT %s", fmt);
 		struct json_object *tmp = NULL;
 		switch (*fmt++) {
 			PUT_VAR_IN_CASE(URPC_U8, u8);
