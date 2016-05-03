@@ -194,13 +194,19 @@ case cs: \
 			PUT_VAR_IN_CASE(URPC_S64, s64);
 
 		case URPC_BUF:
-			//FixMe: TODO:...
 			BUG(NULL, "Not implemented");
 			break;
 		case URPC_BIN:
 			len = atoi(fmt);
-			slog(0, SLOG_WARN, "Ignoring %d byte buffer - not implemented", len);
-			BUG(NULL, "Not implemented");
+			tmp = json_object_array_get_idx(json, i++); \
+			if (json_object_is_type(tmp, json_type_int)) {
+				/* TODO: Fetch from handle, binary upload */
+			} else if (json_object_is_type(tmp, json_type_string)) {
+				/* Just copy the json string */
+				const char *str = json_object_to_json_string(tmp);
+				int tocopy = min_t(int, strlen(str), len);
+				aura_buffer_put_bin(buf, str, tocopy);
+			}
 			while (*fmt && (*fmt++ != '.'));
 			break;
 		case 0x0:
