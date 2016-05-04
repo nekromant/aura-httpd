@@ -9,19 +9,6 @@
 #include <unistd.h>
 #include <aura-httpd/utils.h>
 
-/*
- *      /call/name - issue a call
- *      /status - poll for call status
- *      /exports - etable in json
- */
-
-
-/* Lifetime of a call:
- *      POST at /call/name returns numeric id and starts the call
- *      GET at /result/id
- */
-
-
 
 static json_object *object_to_json(const struct aura_object *o)
 {
