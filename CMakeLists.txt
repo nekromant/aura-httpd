@@ -61,6 +61,7 @@ TARGET_LINK_LIBRARIES(ahttpd
     ${AURA_LIBRARIES}
     ${LIBEVENT_LIBRARIES}
     ${JSON_LIBRARIES}
+    -lpthread
 )
 
 file(GLOB UNITS
@@ -83,6 +84,7 @@ endforeach(file)
 
 file(GLOB TEST_SCRIPTS
     "${CMAKE_SOURCE_DIR}/test-scripts/*.sh"
+    "${CMAKE_SOURCE_DIR}/test-scripts/*.js"
 )
 
 foreach(file ${TEST_SCRIPTS})

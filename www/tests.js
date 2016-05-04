@@ -25,12 +25,16 @@ function call_and_check(method, arg) {
         });
 }
 
-function kill()
+function kill(log)
 {
     $.ajax({
         url: "/control/terminate",
         type: 'GET',
         success: function(data) {
+            console.log(log)
+        },
+        error: function(data) {
+            console.log(log)
         }
     });
 }
@@ -39,9 +43,8 @@ function kill()
 function check_completion()
 {
     if (started==0) {
-        console.log("['total_failed', " + num_failed + "]")
         $("#mainpage").append("<br><br>completed, killing server<br>")
-        kill();
+        kill("['total_failed', " + num_failed + "]");
     } else
     setTimeout(check_completion, 300);
 }

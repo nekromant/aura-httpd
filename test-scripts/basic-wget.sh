@@ -23,3 +23,4 @@ fetch /static-none/
 fetch /static-na/
 
 fetch /control/terminate
+exit 0
