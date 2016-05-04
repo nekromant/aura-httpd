@@ -68,8 +68,8 @@ function nodeShowEvents() {
 
 function nodeSubmitCall() {
     name = $("#call-method-name").val();
-    args = "[ " + $("#call-method-args").val() + " ] ";
-    //showError(name, args);
+    args = JSON.parse("[ " + $("#call-method-args").val() + " ] ");
+    showError(name, args);
     auraCall(currentNode.mountpoint, name, args, function(status, data) {
         if (status != "success") {
             showError(status, data);
