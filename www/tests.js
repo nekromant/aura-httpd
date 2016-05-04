@@ -2,10 +2,44 @@ $("#mainpage").html("Running serdes test suite");
 
 
 num_failed = 0
-started = 0
+torun = [[
+"echo_u8", 8
+], [
+"echo_u8", 176
+], [
+"echo_i8", -78
+], [
+"echo_i8",
+79
+], [
+"echo_u16",
+8
+], [
+"echo_i16", -8
+], [
+"echo_u16",
+45000
+], [
+"echo_i16", -20000
+], [
+"echo_u32",
+45000
+], [
+"echo_i32", -20000
+]];
+
+function call_next() {
+    if (torun.length == 0) {
+        $("#mainpage").append("<br><br>completed, killing server<br>")
+        kill("['total_failed', " + num_failed + "]");
+    } else {
+        item = torun.pop();
+        call_and_check(item[0], item[1])
+    }
+}
+
 
 function call_and_check(method, arg) {
-    started++;
     auraCall("/online", method, [arg],
         function(status, data, a) {
             result = "failed";
@@ -21,12 +55,11 @@ function call_and_check(method, arg) {
                 num_failed++;
             }
             console.log("[ '" + method + "', '" + result + "'] ");
-            started--;
+            call_next();
         });
 }
 
-function kill(log)
-{
+function kill(log) {
     $.ajax({
         url: "/control/terminate",
         type: 'GET',
@@ -40,23 +73,4 @@ function kill(log)
 }
 
 
-function check_completion()
-{
-    if (started==0) {
-        $("#mainpage").append("<br><br>completed, killing server<br>")
-        kill("['total_failed', " + num_failed + "]");
-    } else
-    setTimeout(check_completion, 300);
-}
-
-call_and_check("echo_u8", 8)
-call_and_check("echo_u8", 176)
-call_and_check("echo_i8", -78)
-call_and_check("echo_i8", 79)
-call_and_check("echo_u16", 8)
-call_and_check("echo_i16", -8)
-call_and_check("echo_u16", 45000)
-call_and_check("echo_i16", -20000)
-call_and_check("echo_u32", 45000)
-call_and_check("echo_i32", -20000)
-check_completion()
+call_next();
