@@ -18,7 +18,6 @@ static void *script_thread(void *arg)
 {
 	sleep(3);
 	int script_result = system(arg);
-	slog(0, SLOG_DEBUG, "===> %d", script_result);
 	return (void *) WEXITSTATUS(script_result);
 }
 
@@ -35,13 +34,13 @@ int main(int argc, char *argv[])
 
 	struct json_object *conf = json_load_from_file(argv[1]);
 	struct ahttpd_server *server = ahttpd_server_create(conf);
-	json_object_put(conf);
 
 	pthread_create(&tid, &attrs, script_thread, argv[2]);
 
 	aura_handle_events_forever(server->aloop);
-	ahttpd_server_destroy(server);
-
 	pthread_join(tid, (void **)&ret);
+	ahttpd_server_destroy(server);
+	json_object_put(conf);
+
 	exit( (int) ret);
 }
