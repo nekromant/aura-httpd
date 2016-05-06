@@ -62,7 +62,7 @@ foreach(flag ${CMAKE_C_FLAGS_SPLIT})
 endforeach()
 
 file(WRITE ${CMAKE_SOURCE_DIR}/.core_sources "")
-foreach(f ${CORE_SRCS})
+foreach(f ${CORE_SRCS} main.c)
   file(APPEND ${CMAKE_SOURCE_DIR}/.core_sources "${f} ")
 endforeach()
 

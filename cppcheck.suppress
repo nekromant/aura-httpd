@@ -1,0 +1,3 @@
+unnecessaryForwardDeclaration:/usr/include/json-c/json_object.h:81
+unusedFunction:fs_*
+missingIncludeSystem

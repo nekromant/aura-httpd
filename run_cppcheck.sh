@@ -16,4 +16,4 @@ paths() {
     done
 }
 
-cppcheck `paths` --enable=all `cat .core_sources` --xml 2>cppcheck.xml
+cppcheck `paths` --enable=all --suppressions-list=cppcheck.suppress  --platform=unix64 `cat .core_sources` --xml 2>cppcheck.xml
