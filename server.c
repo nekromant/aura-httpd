@@ -22,10 +22,8 @@ static void load_mountpoints(struct ahttpd_server *server, json_object *fstab)
 
 static void parse_config(struct ahttpd_server *server, struct json_object *conf)
 {
-	enum json_type type;
-
 	json_object_object_foreach(conf, key, val) {
-		type = json_object_get_type(val);
+		enum json_type type = json_object_get_type(val);
 		switch (type) {
 		case json_type_string:
 			if (strcmp(key, "host") == 0)
