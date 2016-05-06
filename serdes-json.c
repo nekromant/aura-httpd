@@ -62,8 +62,8 @@ json_object *ahttpd_format_to_json(const char *fmt)
 			json_object_object_add(tmp, "binary", ln);
 			while (*fmt && (*fmt++ != '.'));
 			break;
-		case 0x0:
-			tmp = json_object_new_object();
+		default:
+				BUG(NULL, "Invalid format string");
 			break;
 		}
 		json_object_array_add(ret, tmp);
@@ -120,8 +120,8 @@ case cs: \
 			slog(0, SLOG_WARN, "Ignoring %d byte buffer - not implemented", len);
 			while (*fmt && (*fmt++ != '.'));
 			break;
-		case 0x0:
-			tmp = json_object_new_object();
+		default:
+			BUG(NULL, "Invalid format string");
 			break;
 		}
 

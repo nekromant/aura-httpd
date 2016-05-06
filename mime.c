@@ -123,6 +123,7 @@ const char *ahttpd_mime_guess(struct hsearch_data *instance, const char *filenam
 		goto bailout;
 
 	ep.key = (char *) ext;
+	ep.data = NULL;
 	ret = hsearch_r(ep, FIND, &found, instance);
 	if (ret)
 		return found->data;
