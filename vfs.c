@@ -69,18 +69,19 @@ int ahttpd_mount(struct ahttpd_server *server, json_object *opts)
 	mpoint->mountpoint = mp;
 	mpoint->props = opts;
 
-	json_object_get(opts);
-
 	slog(1, SLOG_INFO, "Mounting %s at %s", tp, mp);
-	if (fs->mount(mpoint) == 0)
-		list_add_tail(&mpoint->qentry, &server->mountpoints);
-	else {
-		if (mpoint->fsdata)
-			free(mpoint->fsdata);
-		free(mpoint);
-	}
+	if (fs->mount(mpoint) != 0)
+		goto bailout;
 
+	list_add_tail(&mpoint->qentry, &server->mountpoints);
+	json_object_get(opts);
 	return 0;
+
+bailout:
+	if (mpoint->fsdata)
+		free(mpoint->fsdata);
+	free(mpoint);
+	return -1;
 }
 
 void ahttpd_unmount(struct ahttpd_mountpoint *mp)
@@ -91,7 +92,6 @@ void ahttpd_unmount(struct ahttpd_mountpoint *mp)
 	list_del(&mp->qentry);
 	if (mp->fsdata)
 		free(mp->fsdata);
-
 	free(mp);
 }
 
