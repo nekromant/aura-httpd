@@ -17,7 +17,7 @@
 static void *script_thread(void *arg)
 {
 	int script_result = system(arg);
-	return (void *) WEXITSTATUS(script_result);
+	return (void *) (intptr_t) WEXITSTATUS(script_result);
 }
 
 /* This shouldn't give us any memory leaks */
@@ -41,5 +41,5 @@ int main(int argc, char *argv[])
 	ahttpd_server_destroy(server);
 	json_object_put(conf);
 
-	exit( (int) ret);
+	exit( (int) (intptr_t) ret);
 }
