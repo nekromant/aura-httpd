@@ -16,7 +16,6 @@
 
 static void *script_thread(void *arg)
 {
-	sleep(3);
 	int script_result = system(arg);
 	return (void *) WEXITSTATUS(script_result);
 }
