@@ -85,13 +85,12 @@ struct hsearch_data *ahttpd_mime_init()
 	ENTRY *ep;
 	struct hsearch_data *hs = calloc(1, sizeof(*hs));
 	int i = 0;
-	int ret;
 	if (!hs)
 		BUG(NULL, "Failed to allocate memory");
 	int n = ARRAY_SIZE(mimedb);
 	hcreate_r(n+n/4, hs);
 	while (mimedb[i].key) {
-		ret = hsearch_r(mimedb[i], ENTER, &ep, hs);
+		int ret = hsearch_r(mimedb[i], ENTER, &ep, hs);
 		if (!ret)
 			BUG(NULL, "Error inserting mime data");
 		i++;
