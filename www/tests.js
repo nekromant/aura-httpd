@@ -2,31 +2,19 @@ $("#mainpage").html("Running serdes test suite");
 
 
 num_failed = 0
-torun = [[
-"echo_u8", 8
-], [
-"echo_u8", 176
-], [
-"echo_i8", -78
-], [
-"echo_i8",
-79
-], [
-"echo_u16",
-8
-], [
-"echo_i16", -8
-], [
-"echo_u16",
-45000
-], [
-"echo_i16", -20000
-], [
-"echo_u32",
-45000
-], [
-"echo_i32", -20000
-]];
+torun = [
+    [ "echo_u8", 8 ],
+    [ "echo_u8", 176],
+    [ "echo_i8", -78 ],
+    [ "echo_i8", 79 ],
+    [ "echo_u16", 8 ],
+    [ "echo_i16", -8 ],
+    [ "echo_u16", 45000 ],
+    [ "echo_i16", -20000 ],
+    [ "echo_u32", 45000 ],
+    [ "echo_i32", -20000],
+    [ "echo_u64", 45000 ]
+];
 
 function call_next() {
     if (torun.length == 0) {

@@ -7,7 +7,7 @@
 #include <event2/http.h>
 
 #define AHTTPD_FS(s)						   \
-        void __attribute__((constructor (101))) do_reg_##s(void) { \
+        static void __attribute__((constructor (101))) do_reg_##s(void) { \
                 ahttpd_filesystem_register(&s);			   \
         }
 
