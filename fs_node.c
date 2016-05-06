@@ -317,7 +317,7 @@ static int node_mount(struct ahttpd_mountpoint *mpoint)
 static void node_unmount(struct ahttpd_mountpoint *mpoint)
 {
 	struct nodefs_data *nd = mpoint->fsdata;
-
+	ahttpd_callresource_cleanup(mpoint);
 	ahttpd_del_path(mpoint, "/exports");
 	ahttpd_del_path(mpoint, "/events");
 	ahttpd_del_path(mpoint, "/status");

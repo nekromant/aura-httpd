@@ -72,8 +72,14 @@ int ahttpd_mount(struct ahttpd_server *server, json_object *opts)
 	json_object_get(opts);
 
 	slog(1, SLOG_INFO, "Mounting %s at %s", tp, mp);
-	fs->mount(mpoint);
-	list_add_tail(&mpoint->qentry, &server->mountpoints);
+	if (fs->mount(mpoint) == 0)
+		list_add_tail(&mpoint->qentry, &server->mountpoints);
+	else {
+		if (mpoint->fsdata)
+			free(mpoint->fsdata);
+		free(mpoint);
+	}
+
 	return 0;
 }
 

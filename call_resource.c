@@ -84,6 +84,19 @@ void ahttpd_call_delete(struct ahttpd_pending_call *res)
 	free(res);
 }
 
+void ahttpd_callresource_cleanup(struct ahttpd_mountpoint *mpoint)
+{
+	struct nodefs_data *nd = mpoint->fsdata;
+	slog(0, SLOG_INFO, "Cleaning up temporary resources");
+	struct ahttpd_pending_call *pos;
+	struct ahttpd_pending_call *tmp;
+	list_for_each_entry_safe(pos, tmp, &nd->pending_call_list, qentry)
+		ahttpd_call_delete(pos);
+	list_for_each_entry_safe(pos, tmp, &nd->gc_call_list, qentry)
+		ahttpd_call_delete(pos);
+
+}
+
 struct ahttpd_pending_call *ahttpd_call_create(struct ahttpd_mountpoint *mpoint,
 					       struct evhttp_request *request,
 					       struct aura_object *o, struct json_object *args,
