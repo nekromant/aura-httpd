@@ -118,7 +118,7 @@ static int serve_file(struct evhttp_request *request, const char *dpath, const c
 	evbuffer_add_file(buffer, ifd, 0, sz);
 	evhttp_send_reply(request, HTTP_OK, "OK", buffer);
 	evbuffer_free(buffer);
-	fclose(fd);
+	close(ifd);
 	return 0;
 }
 
