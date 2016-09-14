@@ -83,11 +83,18 @@ struct ahttpd_server *ahttpd_server_create(struct json_object *config)
 	server->port = 32001;
 	server->host = "127.0.0.1";
 	server->aloop = aura_eventloop_create_empty();
+
+	if (!server->aloop)
+		BUG(NULL, "Failed to create aura eventloop");
+
 	server->ebase = aura_eventloop_moduledata_get(server->aloop);
+	if (!server->ebase)
+		BUG(NULL, "Failed to obtain event base");
+
 	server->eserver = evhttp_new(server->ebase);
 	server->mimedb = ahttpd_mime_init();
 
-	if (!server->aloop || !server->ebase || !server->eserver || !server->mimedb)
+	if (!server->eserver || !server->mimedb)
 		BUG(NULL, "fatal error allocating ahttd server instance");
 
 	INIT_LIST_HEAD(&server->mountpoints);
