@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
 	pthread_create(&tid, &attrs, script_thread, argv[2]);
 
-	aura_handle_events_forever(server->aloop);
+	aura_eventloop_dispatch(server->aloop, 0);
 	pthread_join(tid, (void **)&ret);
 	ahttpd_server_destroy(server);
 	json_object_put(conf);

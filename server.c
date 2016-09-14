@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <aura-httpd/utils.h>
+#include <aura/eventloop.h>
 
 static void load_mountpoints(struct ahttpd_server *server, json_object *fstab)
 {
@@ -75,14 +76,14 @@ static void generic_route(struct evhttp_request *request, void *params)
 struct ahttpd_server *ahttpd_server_create(struct json_object *config)
 {
 	struct ahttpd_server *server = calloc(1, sizeof(*server));
-
 	if (!server)
 		BUG(NULL, "calloc() failed");
 
+	aura_eventloop_module_select("libevent");
 	server->port = 32001;
 	server->host = "127.0.0.1";
 	server->aloop = aura_eventloop_create_empty();
-	server->ebase = aura_eventloop_get_ebase(server->aloop);
+	server->ebase = aura_eventloop_moduledata_get(server->aloop);
 	server->eserver = evhttp_new(server->ebase);
 	server->mimedb = ahttpd_mime_init();
 
