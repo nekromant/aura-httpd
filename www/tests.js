@@ -1,5 +1,8 @@
-$("#mainpage").html("Running serdes test suite");
+$("#mainpage").html("Running serdes test suite @ ");
 
+setTimeout(function() {
+    $("#mainpage").append(window.location.hash)
+}, 1000);
 
 num_failed = 0
 torun = [
@@ -59,6 +62,5 @@ function kill(log) {
         }
     });
 }
-
 
 call_next();

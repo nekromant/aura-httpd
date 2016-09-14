@@ -69,7 +69,6 @@ function nodeShowEvents() {
 function nodeSubmitCall() {
     name = $("#call-method-name").val();
     args = JSON.parse("[ " + $("#call-method-args").val() + " ] ");
-    showError(name, args);
     auraCall(currentNode.mountpoint, name, args, function(status, data) {
         if (status != "success") {
             showError(status, data);
@@ -109,9 +108,8 @@ function nodeShowWelcome() {
 function showError(title, text) {
     $("#error-title").html(title);
     $("#error-text").html(text);
-    $('#error-message').popup();
+    //$('#error-message').popup();
     $('#error-message').popup('open');
-    //window.location.href = "#error-message";
 }
 
 function nodeShowCallUi() {
@@ -229,8 +227,7 @@ function uiReload() {
 }
 
 
-$(document).on("pageinit", "#mainpage", function() {
-    //$('#error-message').popup();
+$(document).on("pageinit", "#mainpage", function(e) {
     $(document).on("swipeleft swiperight", "#mainpage", function(e) {
         // We check if there is no open panel on the page because otherwise
         // a swipe to close the left panel would also open the right panel (and v.v.).
