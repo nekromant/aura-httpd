@@ -21,7 +21,10 @@ static void version(struct evhttp_request *request, void *arg)
 
 void terminate_rq_close_cb(struct evhttp_connection *con, void *arg)
 {
-		aura_eventloop_break(arg);
+		struct timeval tv;
+		tv.tv_sec = 5;
+		tv.tv_usec = 0;
+		aura_eventloop_loopexit(arg, &tv);
 }
 
 static void terminate(struct evhttp_request *request, void *arg)
