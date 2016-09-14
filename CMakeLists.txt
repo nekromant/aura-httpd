@@ -5,8 +5,10 @@ SET(PROJECT_VERSION   0.1.2)
 enable_testing()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
+SET(AHTTPD_TESTSUITE no CACHE BOOL "Run ahttpd test suite")
 SET(AHTTPD_TEST_LEAKS no CACHE BOOL "Valgrind for memory leaks during testing")
 SET(AHTTPD_COVERALLS no CACHE BOOL "Generate coveralls data")
+
 
 SET(CORE_SRCS
   vfs.c
@@ -97,17 +99,19 @@ file(GLOB TEST_SCRIPTS
     "${CMAKE_SOURCE_DIR}/test-scripts/*.js"
 )
 
-foreach(file ${TEST_SCRIPTS})
-  GET_FILENAME_COMPONENT(f ${file} NAME_WE)
-  ADD_TEST(script-${f} ahttpd-test-wrapper "../config-test.json" ${file})
-  if (AHTTPD_TEST_LEAKS)
-    ADD_TEST(memcheck-${f} valgrind
-      --error-exitcode=1 --read-var-info=yes
-      --leak-check=full  --show-leak-kinds=all
-      --undef-value-errors=no --xml=yes --xml-file=${f}.xml
-    ./ahttpd-test-wrapper "../config-test.json" ${file})
-  endif()
-endforeach(file)
+if (AHTTPD_TESTSUITE)
+  foreach(file ${TEST_SCRIPTS})
+    GET_FILENAME_COMPONENT(f ${file} NAME_WE)
+    ADD_TEST(script-${f} ahttpd-test-wrapper "../config-test.json" ${file})
+    if (AHTTPD_TEST_LEAKS)
+      ADD_TEST(memcheck-${f} valgrind
+        --error-exitcode=1 --read-var-info=yes
+        --leak-check=full  --show-leak-kinds=all
+        --undef-value-errors=no --xml=yes --xml-file=${f}.xml
+      ./ahttpd-test-wrapper "../config-test.json" ${file})
+    endif()
+  endforeach(file)
+endif()
 
 ADD_EXECUTABLE(aurahttpd ${CORE_SRCS} main.c)
 TARGET_LINK_LIBRARIES(aurahttpd ahttpd)
