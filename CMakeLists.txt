@@ -39,7 +39,16 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_SOURCE_DIR}/include
 )
 
-ADD_LIBRARY(aura OBJECT ${CORE_SRCS})
+ADD_LIBRARY(ahttpd STATIC ${CORE_SRCS})
+TARGET_LINK_LIBRARIES(ahttpd
+    ${AURA_LIBRARIES}
+    ${LIBEVENT_LIBRARIES}
+    ${JSON_LIBRARIES}
+    ${DAEMON_LIBRARIES}
+    -lpthread
+)
+
+
 if (AHTTPD_COVERALLS)
     include(Coveralls)
     coveralls_turn_on_coverage()
@@ -70,22 +79,13 @@ foreach(f ${CORE_SRCS} main.c)
   file(APPEND ${CMAKE_SOURCE_DIR}/.core_sources "${f} ")
 endforeach()
 
-ADD_LIBRARY(ahttpd STATIC ${CORE_SRCS})
-TARGET_LINK_LIBRARIES(ahttpd
-    ${AURA_LIBRARIES}
-    ${LIBEVENT_LIBRARIES}
-    ${JSON_LIBRARIES}
-    ${DAEMON_LIBRARIES}
-    -lpthread
-)
-
 file(GLOB UNITS
     "${CMAKE_SOURCE_DIR}/tests/*.c"
 )
 
 foreach(file ${UNITS})
   GET_FILENAME_COMPONENT(f ${file} NAME_WE)
-  ADD_EXECUTABLE(test-${f} ${file} ${CORE_SRCS})
+  ADD_EXECUTABLE(test-${f} ${file})
   TARGET_LINK_LIBRARIES(test-${f} ahttpd)
   ADD_TEST(${f} test-${f} "../config-test.json")
   if (AHTTPD_TEST_LEAKS)
@@ -116,10 +116,10 @@ if (AHTTPD_TESTSUITE)
   endforeach(file)
 endif()
 
-ADD_EXECUTABLE(aurahttpd ${CORE_SRCS} main.c)
+ADD_EXECUTABLE(aurahttpd main.c)
 TARGET_LINK_LIBRARIES(aurahttpd ahttpd)
 
-ADD_EXECUTABLE(ahttpd-test-wrapper ${CORE_SRCS} test-wrapper.c)
+ADD_EXECUTABLE(ahttpd-test-wrapper test-wrapper.c)
 TARGET_LINK_LIBRARIES(ahttpd-test-wrapper ahttpd)
 
 INSTALL(TARGETS aurahttpd
