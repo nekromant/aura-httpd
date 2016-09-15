@@ -20,17 +20,23 @@ static void load_mountpoints(struct ahttpd_server *server, json_object *fstab)
 	}
 }
 
-
 static void parse_config(struct ahttpd_server *server, struct json_object *conf)
 {
+	char *tmp;
 	json_object_object_foreach(conf, key, val) {
 		enum json_type type = json_object_get_type(val);
 		switch (type) {
 		case json_type_string:
+			tmp = strdup(json_object_get_string(val));
+			if (!tmp)
+				BUG(NULL, "strdup() failed");
+
 			if (strcmp(key, "host") == 0)
-				server->host = strdup(json_object_get_string(val));
+				server->host = tmp;
 			else if (strcmp(key, "index") == 0)
-				server->index = strdup(json_object_get_string(val));
+				server->index = tmp;
+			else
+				free(tmp);
 			break;
 		case json_type_int:
 			if (strcmp(key, "port") == 0)

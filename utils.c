@@ -78,32 +78,41 @@ void ahttpd_reply_with_json(struct evhttp_request *request, json_object *o)
 	evbuffer_free (buffer);
 }
 
-struct json_object *json_load_from_file(char *filename)
+struct json_object *json_load_from_file(const char *filename)
 {
-	struct stat st;
-
+	json_object *conf = NULL;
 	slog(1, SLOG_DEBUG, "Reading config: %s", filename);
-	if ((stat(filename, &st) == -1) || S_ISDIR(st.st_mode)) {
-		slog(0, SLOG_ERROR, "Config file %s doesn't exist");
-		exit(1);
+
+	FILE *fd = fopen(filename, "r");
+	if (!fd) {
+		slog(0, SLOG_ERROR, "Failed to open config file %s: %s",
+			filename, strerror(errno));
+		goto err_bailout;
 	}
 
-	int file_size = st.st_size;
-	char *buf = calloc(1, file_size + 1);
-	FILE *fd = fopen(filename, "r");
-	if (!fd)
-		BUG(NULL, "Failed to open config file");
+	fseek(fd, 0, SEEK_END);
+	unsigned long file_size = ftell(fd);
+	rewind(fd);
 
-	if (1 != fread(buf, file_size, 1, fd))
-		BUG(NULL, "Failed to read config file");
+	char *buf = calloc(1, file_size + 1);
+	if (!buf)
+		goto err_close_file;
+
+	if (1 != fread(buf, file_size, 1, fd)) {
+		slog(0, SLOG_ERROR, "Failed to read everything from config file");
+		goto err_free_buf;
+	}
 
 	enum json_tokener_error error = json_tokener_success;
-	json_object *conf = json_tokener_parse_verbose(buf, &error);
+	conf = json_tokener_parse_verbose(buf, &error);
 	if (error != json_tokener_success) {
 		slog(0, SLOG_ERROR, "Problem parsing config file");
-		exit(1);
 	}
-	fclose(fd);
+
+err_free_buf:
 	free(buf);
+err_close_file:
+	fclose(fd);
+err_bailout:
 	return conf;
 }

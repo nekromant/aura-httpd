@@ -18,6 +18,7 @@ struct ahttpd_server {
 	struct event_base      *ebase;
 	struct aura_eventloop  *aloop;
 	char                   *host;
+	char 				   *name;
 	int                     port;
 	struct list_head        mountpoints;
 	char 					*index;
@@ -112,6 +113,6 @@ void ahttpd_mime_destroy(struct hsearch_data *instance);
 
 struct ahttpd_server *ahttpd_server_create(struct json_object *config);
 void ahttpd_server_destroy(struct ahttpd_server *);
-struct json_object *json_load_from_file(char *filename);
+struct json_object *json_load_from_file(const char *filename);
 
 #endif
