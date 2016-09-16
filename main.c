@@ -15,7 +15,7 @@ int do_daemonize = 0;
 int do_kill = 0;
 
 enum daemon_error_codes {
-	DAEMON_FAIL_TO_CLOSE,
+	DAEMON_FAIL_TO_CLOSE=0,
 	DAEMON_FAIL_PID,
 	DAEMON_FAIL_CONF,
 	DAEMON_FAIL_START,
@@ -160,7 +160,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	slog(0, SLOG_DEBUG, "%d\n", do_daemonize);
 	/* Do the fork, if needed */
 	if (do_daemonize) {
 		/* Prepare for return value passing from the initialization procedure of the daemon process */
@@ -186,8 +185,7 @@ int main(int argc, char *argv[])
 		if (!ret)
 			slog(0, SLOG_LIVE, "AuraHTTPD is now up and running!");
 		else
-			slog(0, SLOG_ERROR, "Failed to start AuraHTTPD");
-			slog(0, SLOG_ERROR, daemon_error_messages[ret]);
+			slog(0, SLOG_ERROR, "Failed to start AuraHTTPD: %s ", daemon_error_messages[ret]);
 		return 0;
 	}
 
@@ -195,6 +193,7 @@ int main(int argc, char *argv[])
 		/* At this point we're definetely the daemon if we're daemonizing */
 		/* So let's do our daemonic thingies here */
 		if (daemon_close_all(-1) < 0) {
+			daemon_log(0, "Failed to close all file descriptors: %s\n", strerror(errno));
 			slog(0, SLOG_ERROR, "Failed to close all file descriptors: %s", strerror(errno));
 			daemon_retval_send(DAEMON_FAIL_TO_CLOSE);
 			goto bailout;
@@ -205,10 +204,10 @@ int main(int argc, char *argv[])
 		  	daemon_retval_send(DAEMON_FAIL_PID);
 		  	goto bailout;
 	  	}
-
 	}
 	/* Reinit slog to log to file*/
 	slog_init(logfile, loglevel);
+	slog(0, SLOG_INFO, "Starting AuraHTTP server");
 	struct json_object *conf = json_load_from_file(configfile);
 	if (!conf) {
 		slog(0, SLOG_ERROR, "Error loading configuration: %s", configfile);
