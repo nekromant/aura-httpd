@@ -14,26 +14,36 @@
 
 
 
-static int debug_handle_headers(struct upfs_data *fsd, struct evbuffer_iovec *vec, int length)
+static void debug_handle_rq_headers(struct upfs_data *fsd)
 {
-	return dump_iovec_to_file("/tmp/headers.txt", vec, length);
+	printf("[UPLOAD_MOD_DEBUG] Incoming upload request!\n");
 }
 
-static int debug_handle_data(struct upfs_data *fsd, struct evbuffer_iovec *vec, int length)
+static void debug_handle_form_header(struct upfs_data *fsd, char *key, char *value)
 {
-	return dump_iovec_to_file("/tmp/data.bin", vec, length);
+	printf("[UPLOAD_MOD_DEBUG] form header |  %s: %s\n", key, value);
 }
 
-static int debug_upload_result(struct upfs_data *fsd, int result)
+static void debug_handle_data(struct upfs_data *fsd, struct evbuffer_iovec *vec, int length)
 {
-	return 0;
+	printf("[UPLOAD_MOD_DEBUG] Writing %d bytes of data to file\n", length);
+	if (0 != dump_iovec_to_file("/tmp/data.bin", vec, length))
+		uploadfs_upload_send_error(fsd, NULL);
+}
+
+static void debug_send_result(struct upfs_data *fsd)
+{
+	printf("[UPLOAD_MOD_DEBUG] Sending result!\n");
+	ahttpd_reply_accepted(fsd->request, "/");
+	return;
 }
 
 static struct uploadfs_module debugmod = {
 	.name = "debug",
-    .handle_headers = debug_handle_headers,
+	.inbound_request_hook = debug_handle_rq_headers,
+    .handle_form_header = debug_handle_form_header,
 	.handle_data = debug_handle_data,
-	.upload_result = debug_upload_result,
+	.send_upload_reply = debug_send_result,
 };
 
 AHTTPD_UPLOADFS_MODULE(debugmod);

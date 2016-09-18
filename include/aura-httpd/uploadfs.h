@@ -10,23 +10,26 @@ struct upfs_data;
 struct uploadfs_module
 {
 	const char *name;
-	int (*handle_headers)(struct upfs_data *fsd, struct evbuffer_iovec *vec, int n);
-	int (*handle_data)(struct upfs_data *fsd, struct evbuffer_iovec *vec, int n);
-	int (*upload_result)(struct upfs_data *fsd, int success);
+	void (*inbound_request_hook)(struct upfs_data *fsd);
+	void (*handle_form_header)(struct upfs_data *fsd, char *key, char *data);
+	void (*handle_data)(struct upfs_data *fsd, struct evbuffer_iovec *vec, int n);
+	void (*send_upload_reply)(struct upfs_data *fsd);
 	struct list_head qentry;
 };
 
 struct upfs_data {
-	char *blah;
 	struct iovec *iovec;
 	int num_iovec;
 	struct uploaded_file *files;
 	struct uploadfs_module *mod;
+	struct evhttp_request *request;
+	int upload_error;
 };
 
 
-
 void uploadfs_register_module(struct uploadfs_module* mod);
+void uploadfs_upload_send_error(struct upfs_data *fsd, struct json_object *reply);
+
 int dump_iovec(FILE *fd, struct evbuffer_iovec *vec, int length);
 int dump_iovec_to_file(const char *path, struct evbuffer_iovec *vec, int length);
 
