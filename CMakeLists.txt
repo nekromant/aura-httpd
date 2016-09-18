@@ -20,10 +20,11 @@ SET(CORE_SRCS
   fs_control.c
   fs_node.c
   fs_static.c
-#  fs_memcache.c
+  fs_upload.c
+  fs_upload_mod_debug.c
 )
 
-FIND_PACKAGE(PkgConfig)
+find_package(PkgConfig)
 PKG_CHECK_MODULES(AURA REQUIRED aura)
 PKG_CHECK_MODULES(DAEMON REQUIRED libdaemon)
 PKG_CHECK_MODULES(LIBEVENT REQUIRED libevent)
@@ -36,7 +37,7 @@ INCLUDE_DIRECTORIES(
     ${LIBEVENT_INCLUDE_DIRS}
     ${JSON_INCLUDE_DIRS}
     ${DAEMON_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/include
+    include
 )
 
 ADD_LIBRARY(ahttpd SHARED ${CORE_SRCS})
@@ -45,7 +46,7 @@ TARGET_LINK_LIBRARIES(ahttpd
     ${LIBEVENT_LIBRARIES}
     ${JSON_LIBRARIES}
     ${DAEMON_LIBRARIES}
-    -lpthread
+    -lpthread -lhttp_parser
 )
 
 SET_TARGET_PROPERTIES(ahttpd PROPERTIES OUTPUT_NAME aurahttpd)

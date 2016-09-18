@@ -158,9 +158,21 @@ Directory listing mode. This can be one of 'none', 'json' or 'html'. None will s
 }
 ```
 
+# Known limitations
+
+* File uploads are terribly inefficient and require a lot of RAM
+* No authentification mechanisms
+
+# Third-party libraries/snipplets
+
+A few libraries where either not available in usual linux distributions or
+where missing a proper pkg-config file that would make building aurahttpd pain
+in most distributions. Since they are small they just come along with aurahttpd.
+
+* libhttp-parser from nodejs, which in turn came from nginx.
+https://github.com/nodejs/http-parser
 
 #TODO
-
 * main: Commandline arguments parsing
 * main: Daemonize properly
 * fs_node: Rework method calling procedure.  

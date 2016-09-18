@@ -96,6 +96,7 @@ static int serve_file(struct evhttp_request *request, const char *dpath, const c
 	struct evbuffer *buffer;
 	long sz;
 	FILE *fd;
+	int ifd = -1;
 
 	fd = fopen(dpath, "r");
 	if (fd == NULL)
@@ -103,11 +104,10 @@ static int serve_file(struct evhttp_request *request, const char *dpath, const c
 
 	fseek(fd, 0, SEEK_END);
 	sz = ftell(fd);
-	rewind(fd);
 	fclose(fd);
 
-	int ifd = open(dpath, O_RDONLY);
-	if (!ifd)
+	ifd = open(dpath, O_RDONLY);
+	if (ifd < 0)
 		return -1;
 
 	struct evkeyvalq *headers = evhttp_request_get_output_headers(request);
@@ -115,10 +115,10 @@ static int serve_file(struct evhttp_request *request, const char *dpath, const c
 //	evhttp_add_header(headers, "Server", LIBSRVR_SIGNATURE);
 
 	buffer = evbuffer_new();
+	/* ifd now owned and closed by libevent */
 	evbuffer_add_file(buffer, ifd, 0, sz);
 	evhttp_send_reply(request, HTTP_OK, "OK", buffer);
 	evbuffer_free(buffer);
-	close(ifd);
 	return 0;
 }
 
