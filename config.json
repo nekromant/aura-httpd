@@ -2,10 +2,18 @@
 	"host": "0.0.0.0",
 	"port": 8088,
 	"index": "/static/index.html",
+	"max_request_size": 8388608,
+	"max_body_size": 8388608,
+	"connection_timeout": 60,
 	"mountpoints": [
 		 {
 		   "type": "control",
 		   "mountpoint": "/control",
+		 },
+		 {
+			"type": "upload",
+			"mountpoint": "/upload",
+			"maxsize": 65535,
 		 },
 		 {
 		   "type": "node",
@@ -16,10 +24,9 @@
 		 {
 		   "type": "static",
 		   "mountpoint": "/static/",
-		   "dir": "../www",
+		   "dir": "/home/necromant/work/aura-httpd/www",
 		   "index": "index.html",
 		   "dirlist": "html",
 		 },
-
 	]
 }

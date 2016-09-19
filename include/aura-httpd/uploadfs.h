@@ -10,6 +10,8 @@ struct upfs_data;
 struct uploadfs_module
 {
 	const char *name;
+	int  (*init)(struct upfs_data *fsd);
+	void (*deinit)(struct upfs_data *fsd);
 	void (*inbound_request_hook)(struct upfs_data *fsd);
 	void (*handle_form_header)(struct upfs_data *fsd, char *key, char *data);
 	void (*handle_data)(struct upfs_data *fsd, struct evbuffer_iovec *vec, int n);
@@ -24,6 +26,7 @@ struct upfs_data {
 	struct uploadfs_module *mod;
 	struct evhttp_request *request;
 	int upload_error;
+	void *mod_data;
 };
 
 

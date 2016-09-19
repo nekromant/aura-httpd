@@ -23,6 +23,8 @@ struct ahttpd_server {
 	struct list_head        mountpoints;
 	char 					*index;
 	struct hsearch_data    *mimedb;
+	long max_body_size; /* TODO: init default */
+	long max_headers_size;
 };
 
 struct ahttpd_fs {
@@ -83,6 +85,7 @@ void ahttpd_redirect_cb(struct evhttp_request *request, void *arg);
 
 struct json_object *json_find(json_object *arr, char *k);
 const char *json_find_string(json_object *o, char *k);
+long json_find_number(json_object *o, char *k);
 
 
 void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path,

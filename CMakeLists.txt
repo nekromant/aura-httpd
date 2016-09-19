@@ -22,6 +22,7 @@ SET(CORE_SRCS
   fs_static.c
   fs_upload.c
   fs_upload_mod_debug.c
+  fs_upload_mod_buffer.c
 )
 
 find_package(PkgConfig)

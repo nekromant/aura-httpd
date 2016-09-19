@@ -291,6 +291,11 @@ static int up_mount(struct ahttpd_mountpoint *mpoint)
 		return -EIO;
 	}
 
+	if ((fsd->mod->init) && (0 != fsd->mod->init(fsd))) {
+		slog(0, SLOG_ERROR, "Failed to init uploadfs module: %s", modname);
+		return -EIO;
+	}
+
 	/* Start with 4 iovec's */
 	fsd->iovec = malloc(sizeof(struct iovec) * 4);
 	if (!fsd->iovec)
@@ -305,7 +310,11 @@ static void up_unmount(struct ahttpd_mountpoint *mpoint)
 {
 	struct upfs_data *fsd = mpoint->fsdata;
 
+	if (fsd->mod->deinit)
+		fsd->mod->deinit(fsd);
+
 	free(fsd->iovec);
+
 	ahttpd_del_path(mpoint, "/aura_buffer");
 	return;
 }

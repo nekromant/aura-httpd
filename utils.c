@@ -25,6 +25,15 @@ const char *json_find_string(json_object *o, char *k)
 	return json_object_get_string(tmp);
 }
 
+long json_find_number(json_object *o, char *k)
+{
+	json_object *tmp = json_find(o, k);
+	if (!tmp)
+		return -1;
+	return json_object_get_int64(o);
+}
+
+
 int ahttpd_method_allowed(struct evhttp_request *request, enum evhttp_cmd_type tp)
 {
 	int ret = (tp & evhttp_request_get_command(request));

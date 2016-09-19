@@ -35,20 +35,31 @@ static void parse_config(struct ahttpd_server *server, struct json_object *conf)
 				server->host = tmp;
 			else if (strcmp(key, "index") == 0)
 				server->index = tmp;
-			else
+			else {
 				free(tmp);
+				slog(0, SLOG_WARN, "Unhandled string server parameter: %s", key);
+			}
 			break;
 		case json_type_int:
 			if (strcmp(key, "port") == 0)
 				server->port = json_object_get_int(val);
+			else if (strcmp(key, "max_body_size") == 0)
+				server->max_body_size = json_object_get_int(val);
+			else if (strcmp(key, "max_headers_size") == 0)
+				server->max_headers_size = json_object_get_int(val);
+			else
+				slog(0, SLOG_WARN, "Unhandled int server parameter: %s", key);
 			break;
 		case json_type_array:
 			if (strcmp(key, "mountpoints") == 0) {
 				slog(0, SLOG_DEBUG, "%s ", key);
 				load_mountpoints(server, val);
+			} else {
+				slog(0, SLOG_WARN, "Unhandled array server parameter: %s", key);
 			}
 			break;
 		default:
+			slog(0, SLOG_WARN, "Unhandled server parameter: %s", key);
 			break;
 		}
 	}
@@ -86,9 +97,12 @@ struct ahttpd_server *ahttpd_server_create(struct json_object *config)
 		BUG(NULL, "calloc() failed");
 
 	aura_eventloop_module_select("libevent");
+	/* Initialize some sane server defaults */
 	server->port = 32001;
 	server->host = "127.0.0.1";
 	server->aloop = aura_eventloop_create_empty();
+	server->max_body_size = 8 * 1024 * 1024;
+	server->max_headers_size = 1 * 1024 * 1024;
 
 	if (!server->aloop)
 		BUG(NULL, "Failed to create aura eventloop");
@@ -106,6 +120,8 @@ struct ahttpd_server *ahttpd_server_create(struct json_object *config)
 	INIT_LIST_HEAD(&server->mountpoints);
 
 	parse_config(server, config);
+	evhttp_set_max_body_size(server->eserver, server->max_body_size);
+	evhttp_set_max_headers_size(server->eserver, server->max_headers_size);
 
 	evhttp_set_allowed_methods(server->eserver, EVHTTP_REQ_GET | EVHTTP_REQ_POST | EVHTTP_REQ_PUT);
 	evhttp_set_gencb(server->eserver, generic_route, server);
