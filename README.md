@@ -33,7 +33,7 @@ the user there.
 
 The mountpoints are defined in a json array. They are the URI paths at which different things will appear.
 
-For example, if you mount control at /ctl you will be able to access /ctl/version and /ctl/fstab from your browser. You got the idea.
+For example, if you mount control at /ctl you will be able to access /ctl/version and /ctl/fstab from your browser. Just as if it was a filesystem, plain and simple. You got the idea.
 
 This section documents all available mount types.
 
@@ -95,11 +95,11 @@ Provides information about all mounted filesystems. Basically the 'mountpoints' 
 
 #### shutdown
 
-Accessing this file will cause the server to exit within a few seconds.
+Accessing this file will cause the server to terminate within a few seconds.
 
 ### static
 
-This mountpoint allows you to serve static files. Be warned though - the current static file serving implementation is useful only for testing purposes and MAY be buggy/incomplete/insecure. You are adviced to use a full-blown web-server with reverse-proxy functionality instead.
+This mountpoint allows you to serve static files. Be warned though - the current static file serving implementation is useful only for testing purposes and MAY be buggy/incomplete/insecure. You are advised to use a full-blown web-server with reverse-proxy functionality to serve static files instead.
 
 ```
 {
@@ -120,7 +120,88 @@ Index filename. E.g. index.html. If this file is present in the directory it wil
 
 #### dirlist
 
-Directory listing mode. This can be one of 'none', 'json' or 'html'. None will spit out a 403 error.
+Directory listing mode. This can be one of 'none', 'json' or 'html'. None will spit out a 403 error everytime you access a directory and not a file.
+
+### node
+
+This is a very special mountpoint. It represents an aura node that is connected
+to the system running aura-httpd. Apart from usual, this requires just 2 more
+parameters that are basically the arguments for aura_open(). transport specifies
+the name of the transport to use, while options specify the transport module
+options.
+
+Example
+
+```
+{
+    "type": "node",
+    "mountpoint": "/dummy",
+    "transport":  "dummy",
+    "options": "blah",
+  },
+```
+
+### upload
+
+This mountpoint allows you to upload files via multipart/form-data. This module
+has a few variants that differ depending on what you are going to do with the
+file. This is specified in the 'mode' parameter
+
+WARNING: Due to how libevent/evhttp works, the whole file being uploaded is
+being buffered in system RAM, therefore this will NOT work for uploading huge
+files.
+
+#### debug
+
+This mode is basically a boilerplate for new modes development. It prints stuff
+when things happen and saves posted data as /tmp/data.bin. Nothing else. When
+multiple files are uploaded in one go, each subsequent file overwrites /tmp/data.bin.
+
+
+```
+{
+       "type": "upload",
+       "mountpoint": "/upload",
+       "mode": "debug",
+},
+```
+
+#### file
+
+This mode stores uploaded files in a directory. Simple as that. You can specify
+a directory (that should be writable by the web server) and chose whether to honor original filenames present in Content-Disposition header or not.
+If not the files will be stored under random names.
+
+WARNING: Current implementation is very simple. It will overwrite file silently
+if it already exists in the directory. Unicode filenames aren't handled
+properly.
+
+Example:
+```
+{
+       "type": "upload",
+       "mountpoint": "/upload",
+       "mode": "file",
+       "directory": "/home/necromant/work/aura-httpd/www/upload",
+       "original_filename": true,
+},
+```
+
+#### buffer
+
+This mode allows you to upload a file into an aura_buffer and later pass it as
+arguments via aura RPC calls. Every uploaded buffer will be discarded when it is not used for ttl seconds.
+
+```
+{
+       "type": "upload",
+       "mountpoint": "/upload",
+       "mode": "buffer",
+       "node": "/dummy",
+       "ttl": 60,
+},
+```
+
 
 ## A complete config.json example
 
@@ -162,21 +243,12 @@ Directory listing mode. This can be one of 'none', 'json' or 'html'. None will s
 
 * File uploads are terribly inefficient and require a lot of RAM
 * No authentification mechanisms
+* No SSL (If you want SSL - use a reverse proxy)
 
-# Third-party libraries/snipplets
-
-A few libraries where either not available in usual linux distributions or
-where missing a proper pkg-config file that would make building aurahttpd pain
-in most distributions. Since they are small they just come along with aurahttpd.
-
-* libhttp-parser from nodejs, which in turn came from nginx.
-https://github.com/nodejs/http-parser
 
 #TODO
-* main: Commandline arguments parsing
-* main: Daemonize properly
+* fs_upload: Implement buffer mode
 * fs_node: Rework method calling procedure.  
 * fs_v4l2: Implement jpeg file serving from v4l devices
 * Implement proper test suite
 * Cleanup, valgrinding, static analysis, etc.
-* systemd unit file
