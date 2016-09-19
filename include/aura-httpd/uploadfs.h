@@ -27,6 +27,7 @@ struct upfs_data {
 	struct evhttp_request *request;
 	int upload_error;
 	void *mod_data;
+	struct ahttpd_mountpoint *mpoint;
 };
 
 

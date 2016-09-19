@@ -38,7 +38,7 @@ struct ahttpd_fs {
 };
 
 struct ahttpd_mountpoint {
-	const char                   *mountpoint;
+	const char             *mountpoint;
 	json_object            *props;
 	struct ahttpd_server   *server;
 	const struct ahttpd_fs *fs;
@@ -86,7 +86,7 @@ void ahttpd_redirect_cb(struct evhttp_request *request, void *arg);
 struct json_object *json_find(json_object *arr, char *k);
 const char *json_find_string(json_object *o, char *k);
 long json_find_number(json_object *o, char *k);
-
+bool json_find_boolean(json_object *o, char *k);
 
 void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path,
 		     void (*cb)(struct evhttp_request *request, void *privParams), void *arg);

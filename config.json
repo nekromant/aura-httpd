@@ -2,9 +2,8 @@
 	"host": "0.0.0.0",
 	"port": 8088,
 	"index": "/static/index.html",
-	"max_request_size": 8388608,
+	"max_headers_size": 1000000,
 	"max_body_size": 8388608,
-	"connection_timeout": 60,
 	"mountpoints": [
 		 {
 		   "type": "control",
@@ -13,7 +12,9 @@
 		 {
 			"type": "upload",
 			"mountpoint": "/upload",
-			"maxsize": 65535,
+			"mode": "file",
+			"directory": "/tmp/",
+			"original_filename": true,
 		 },
 		 {
 		   "type": "node",

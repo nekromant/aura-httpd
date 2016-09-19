@@ -33,6 +33,14 @@ long json_find_number(json_object *o, char *k)
 	return json_object_get_int64(o);
 }
 
+bool json_find_boolean(json_object *o, char *k)
+{
+	json_object *tmp = json_find(o, k);
+	if (!tmp)
+		return -1;
+	return json_object_get_boolean(o);
+}
+
 
 int ahttpd_method_allowed(struct evhttp_request *request, enum evhttp_cmd_type tp)
 {

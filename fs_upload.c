@@ -283,8 +283,9 @@ static void upload(struct evhttp_request *request, void *arg)
 static int up_mount(struct ahttpd_mountpoint *mpoint)
 {
 	struct upfs_data *fsd = mpoint->fsdata;
+	fsd->mpoint = mpoint;
 
-	const char *modname = "debug";
+	const char *modname = json_find_string(mpoint->props, "mode");
 
 	if (0 != uploadfs_module_select(fsd, modname)) {
 		slog(0, SLOG_ERROR, "Failed to find uploadfs module: %s", modname);
