@@ -23,10 +23,8 @@ struct filemod_data {
 
 static void kill_trailing_slash(char *str)
 {
-	printf("%s\n", str);
 	if (str[strlen(str) - 1] == '/')
 		str[strlen(str) - 1] = 0x0;
-	printf("%s\n", str);
 }
 
 static int file_init(struct upfs_data *fsd)

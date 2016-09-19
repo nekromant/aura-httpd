@@ -30,15 +30,16 @@ long json_find_number(json_object *o, char *k)
 	json_object *tmp = json_find(o, k);
 	if (!tmp)
 		return -1;
-	return json_object_get_int64(o);
+	return json_object_get_int64(tmp);
 }
 
 bool json_find_boolean(json_object *o, char *k)
 {
 	json_object *tmp = json_find(o, k);
 	if (!tmp)
-		return -1;
-	return json_object_get_boolean(o);
+		return false;
+	int ret = json_object_get_boolean(tmp);
+	return ret;
 }
 
 
