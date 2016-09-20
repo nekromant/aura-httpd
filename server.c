@@ -6,7 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/server.h>
+#include <aura-httpd/vfs.h>
 #include <aura/eventloop.h>
 
 static void load_mountpoints(struct ahttpd_server *server, json_object *fstab)

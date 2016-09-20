@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/server.h>
 #include <getopt.h>
 #include <libdaemon/daemon.h>
 #include <signal.h>

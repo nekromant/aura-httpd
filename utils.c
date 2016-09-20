@@ -6,41 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
-
-struct json_object *json_find(json_object *arr, char *k)
-{
-	json_object_object_foreach(arr, key, val) {
-		if (strcmp(key, k) == 0)
-			return val;
-	}
-	return NULL;
-}
-
-const char *json_find_string(json_object *o, char *k)
-{
-	json_object *tmp = json_find(o, k);
-	if (!tmp)
-		return NULL;
-	return json_object_get_string(tmp);
-}
-
-long json_find_number(json_object *o, char *k)
-{
-	json_object *tmp = json_find(o, k);
-	if (!tmp)
-		return -1;
-	return json_object_get_int64(tmp);
-}
-
-bool json_find_boolean(json_object *o, char *k)
-{
-	json_object *tmp = json_find(o, k);
-	if (!tmp)
-		return false;
-	int ret = json_object_get_boolean(tmp);
-	return ret;
-}
+#include <aura-httpd/server.h>
+#include <aura-httpd/vfs.h>
 
 
 int ahttpd_method_allowed(struct evhttp_request *request, enum evhttp_cmd_type tp)

@@ -13,7 +13,7 @@
 			"type": "upload",
 			"mountpoint": "/upload",
 			"mode": "file",
-			"directory": "/tmp/",
+			"directory": "/home/necromant/work/aura-httpd/www/upload",
 			"original_filename": true,
 		 },
 		 {
@@ -21,6 +21,12 @@
 		   "mountpoint": "/dummy",
 		   "transport":  "dummy",
 		   "options": "blah",
+		 },
+		 {
+			"type": "upload",
+			"mountpoint": "/upload_to_dummy",
+			"mode": "buffer",
+			"owner": "/dummy",
 		 },
 		 {
 		   "type": "static",

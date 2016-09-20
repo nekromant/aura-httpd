@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/server.h>
 #include <unistd.h>
 
 

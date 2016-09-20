@@ -13,6 +13,7 @@ SET(AHTTPD_COVERALLS no CACHE BOOL "Generate coveralls data")
 SET(CORE_SRCS
   vfs.c
   utils.c
+  json-helpers.c
   serdes-json.c
   mime.c
   server.c

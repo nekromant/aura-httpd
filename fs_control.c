@@ -6,7 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/server.h>
+#include <aura-httpd/vfs.h>
 
 static void version(struct evhttp_request *request, void *arg)
 {

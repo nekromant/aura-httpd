@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
-
+#include <aura-httpd/server.h>
+#include <aura-httpd/vfs.h>
 
 struct staticfs_data {
 	char *htdocs;
@@ -174,9 +174,9 @@ static int cfs_mount(struct ahttpd_mountpoint *mpoint)
 {
 	struct staticfs_data *fsd = mpoint->fsdata;
 
-	fsd->htdocs          = strdup(json_find_string(mpoint->props, "dir"));
-	fsd->index           = json_find_string(mpoint->props, "index");
-	const char *dirindex = json_find_string(mpoint->props, "dirlist");
+	fsd->htdocs          = strdup(json_array_find_string(mpoint->props, "dir"));
+	fsd->index           = json_array_find_string(mpoint->props, "index");
+	const char *dirindex = json_array_find_string(mpoint->props, "dirlist");
 
 	if (fsd->htdocs[strlen(fsd->htdocs)-1]=='/')
 		fsd->htdocs[strlen(fsd->htdocs)-1]=0x0;

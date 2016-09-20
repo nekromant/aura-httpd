@@ -9,6 +9,10 @@
     <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
     <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+
+    <script src="/static/dropzone.js"></script>
+    <link rel="stylesheet" href="/static/dropzone.css">
+
     <script src="/static/aura.js"></script>
     <script src="/static/utils.js"></script>
 </head>
@@ -81,6 +85,7 @@
                 <label id="call-method-arghint">uint16,</label>
                 <input type="text" name="args" id="call-method-args" value="" placeholder="Arguments" />
                 <input data-inline="true" value="Go!" type="button" onclick="nodeSubmitCall();">
+                <form action="/upload/aura_buffer" class="dropzone"></form>
             </div>
 
             <div id="content-welcome" class="pagedata">

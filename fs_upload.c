@@ -9,7 +9,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/server.h>
+#include <aura-httpd/vfs.h>
 #include <aura-httpd/uploadfs.h>
 
 static LIST_HEAD(mod_registry);
@@ -285,7 +286,7 @@ static int up_mount(struct ahttpd_mountpoint *mpoint)
 	struct upfs_data *fsd = mpoint->fsdata;
 	fsd->mpoint = mpoint;
 
-	const char *modname = json_find_string(mpoint->props, "mode");
+	const char *modname = json_array_find_string(mpoint->props, "mode");
 
 	if (0 != uploadfs_module_select(fsd, modname)) {
 		slog(0, SLOG_ERROR, "Failed to find uploadfs module: %s", modname);

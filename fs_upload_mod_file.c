@@ -10,7 +10,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/server.h>
+#include <aura-httpd/vfs.h>
 #include <aura-httpd/uploadfs.h>
 
 
@@ -36,7 +37,7 @@ static int file_init(struct upfs_data *fsd)
 		return -ENOMEM;
 	fsd->mod_data = fdata;
 
-	const char *directory = json_find_string(props, "directory");
+	const char *directory = json_array_find_string(props, "directory");
 	if (!directory) {
 		slog(0, SLOG_ERROR, "Missing proper upload directory");
 		return -EBADMSG;
@@ -47,7 +48,7 @@ static int file_init(struct upfs_data *fsd)
 		goto err_free_fdata;
 
 	kill_trailing_slash(fdata->directory);
-	fdata->original_filename = json_find_boolean(props, "original_filename");
+	fdata->original_filename = json_array_find_boolean(props, "original_filename");
 
 	slog(4, SLOG_DEBUG, "fs_upload_mod_file: directory %s original_filename: %s",
 	     fdata->directory,

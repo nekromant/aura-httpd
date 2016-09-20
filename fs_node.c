@@ -7,7 +7,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/server.h>
+#include <aura-httpd/vfs.h>
+#include <aura-httpd/nodefs.h>
 
 
 static json_object *object_to_json(const struct aura_object *o)
@@ -287,8 +289,8 @@ static int node_mount(struct ahttpd_mountpoint *mpoint)
 	const char *mp = mpoint->mountpoint;
 	struct nodefs_data *nd = mpoint->fsdata;
 
-	const char *tr = json_find_string(mpoint->props, "transport");
-	const char *options = json_find_string(mpoint->props, "options");
+	const char *tr = json_array_find_string(mpoint->props, "transport");
+	const char *options = json_array_find_string(mpoint->props, "options");
 
 	if (!tr || !options) {
 		slog(0, SLOG_WARN, "Not mounting node: missing transport name or params");

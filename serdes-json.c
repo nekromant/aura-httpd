@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/vfs.h>
 
 
 json_object *ahttpd_format_to_json(const char *fmt)

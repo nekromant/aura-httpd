@@ -6,7 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <aura-httpd/utils.h>
+#include <aura-httpd/vfs.h>
+#include <aura-httpd/server.h>
 
 static LIST_HEAD(fslist);
 
@@ -41,8 +42,8 @@ struct ahttpd_fs *ahttpd_filesystem_lookup(const char *name)
 
 int ahttpd_mount(struct ahttpd_server *server, json_object *opts)
 {
-	const char *mp = json_find_string(opts, "mountpoint");
-	const char *tp = json_find_string(opts, "type");
+	const char *mp = json_array_find_string(opts, "mountpoint");
+	const char *tp = json_array_find_string(opts, "type");
 
 	if ((tp == NULL) || (mp == NULL))
 		BUG(NULL, "Misconfigurated node section, skipping");
@@ -93,6 +94,17 @@ void ahttpd_unmount(struct ahttpd_mountpoint *mp)
 	if (mp->fsdata)
 		free(mp->fsdata);
 	free(mp);
+}
+
+struct ahttpd_mountpoint *ahttpd_mountpoint_lookup(struct ahttpd_server* server, const char *mountpoint)
+{
+	struct ahttpd_mountpoint *pos;
+	list_for_each_entry(pos, &server->mountpoints, qentry) {
+		slog(0, SLOG_DEBUG, pos->mountpoint);
+		if (strcmp(pos->mountpoint, mountpoint)==0)
+			return pos;
+	}
+	return NULL;
 }
 
 
