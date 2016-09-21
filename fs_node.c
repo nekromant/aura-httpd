@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <aura-httpd/server.h>
 #include <aura-httpd/vfs.h>
+#include <aura-httpd/json.h>
 #include <aura-httpd/nodefs.h>
 
 

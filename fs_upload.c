@@ -10,8 +10,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <aura-httpd/server.h>
+#include <aura-httpd/json.h>
 #include <aura-httpd/vfs.h>
 #include <aura-httpd/uploadfs.h>
+#include <aura-httpd/entity.h>
 
 static LIST_HEAD(mod_registry);
 
@@ -43,6 +45,49 @@ static void dump_evbuffer(struct evbuffer *buf, int len)
 	fflush(stdout);
 }
 
+static void sanitize_string(char *ret)
+{
+	if (!ret)
+		return;
+	int i;
+	for (i = 0; i < strlen(ret); i++)
+		if (ret[i] == '/')
+			ret[i] = '_';
+}
+
+static char *extract_key_value(char *key, char *cds_string)
+{
+	char *ret = malloc(strlen(cds_string));
+	if (!ret)
+		return NULL;
+	char *tmp = alloca(strlen("key") + 8);
+	strcpy(tmp, key);
+	strcat(tmp, "=\"");
+	char *pos = strstr(cds_string, tmp);
+	pos = &pos[strlen(tmp)];
+	int i = 0;
+	while ((*pos) && (*pos != '\"'))
+		ret[i++] = *pos++;
+	ret[i] = 0x0;
+	return ret;
+}
+
+char *uploadfs_get_content_disposition_name(char *cds_string)
+{
+	char *ret = extract_key_value("name", cds_string);
+	sanitize_string(ret);
+	return ret;
+}
+
+char *uploadfs_get_content_disposition_filename(char *cds_string)
+{
+	char *ret = extract_key_value("filename", cds_string);
+	decode_html_entities_utf8(ret, NULL);
+	sanitize_string(ret);
+	return ret;
+}
+
+
 void uploadfs_upload_send_error(struct upfs_data *fsd, struct json_object *reply)
 {
 	/* Stop any further parsing */
@@ -51,6 +96,9 @@ void uploadfs_upload_send_error(struct upfs_data *fsd, struct json_object *reply
 		ahttpd_reply_with_json(fsd->request, reply);
 	else
 		evhttp_send_error(fsd->request, 406, "Not acceptable");
+
+	if (fsd->mod->finalize)
+		fsd->mod->finalize(fsd, 0);
 }
 
 #define check_for_fault() { \
@@ -168,16 +216,18 @@ static int multipart_handle_next_file(struct upfs_data *fsd, struct evbuffer *in
 	int ret = -EBADMSG;
 	int count;
 	char *boundary_search = malloc(strlen(boundary) + 8);
-
 	if (!boundary_search)
 		return -ENOMEM;
 
 	sprintf(boundary_search, "--%s", boundary);
 
+
 	struct evbuffer_ptr start, next;
 	start = evbuffer_search(in_evb, boundary_search, strlen((char *)boundary_search), NULL);
-	if (start.pos == -1)
+	if (start.pos == -1) {
+		slog(0, SLOG_ERROR, "Failed to found boundary when expected (1)");
 		goto bailout;
+	}
 
 	evbuffer_drain(in_evb, strlen(boundary_search) + start.pos + 2);
 	ssize_t length;
@@ -186,7 +236,6 @@ static int multipart_handle_next_file(struct upfs_data *fsd, struct evbuffer *in
 		int ret;
 
 		char *ln = evbuffer_readln(in_evb, &nread, EVBUFFER_EOL_CRLF);
-
 		ret = handle_file_header_line(fsd, ln);
 		if (ret > 0)
 			free(ln);
@@ -194,15 +243,23 @@ static int multipart_handle_next_file(struct upfs_data *fsd, struct evbuffer *in
 			break;
 	}
 
+
 	if (fsd->upload_error)
 		goto bailout;
 
-	next = evbuffer_search(in_evb, boundary_search, strlen((char *)boundary_search), NULL);
-	if (next.pos == -1)
-		goto bailout;
 
-	if (next.pos < start.pos)
+	next = evbuffer_search(in_evb, boundary_search, strlen((char *)boundary_search), NULL);
+	if (next.pos == -1) {
+		slog(0, SLOG_ERROR, "Failed to found boundary when expected (2)");
 		goto bailout;
+	}
+
+	if (next.pos < start.pos) {
+		slog(2, SLOG_ERROR, "Sanity check failed: start %ld next %ld",
+			start.pos,
+			next.pos);
+		goto bailout;
+	}
 
 	slog(4, SLOG_DEBUG, "File data from %d to %d", start.pos, next.pos);
 
@@ -266,7 +323,7 @@ static void upload(struct evhttp_request *request, void *arg)
 
 	int ret;
 	do {
-		ret = multipart_handle_next_file(fsd, in_evb, (char *) boundary);
+		ret = multipart_handle_next_file(fsd, in_evb, (char *)boundary);
 		slog(4, SLOG_DEBUG, "Part Handled with result %d", ret);
 	} while (ret == 1);
 
@@ -275,8 +332,8 @@ static void upload(struct evhttp_request *request, void *arg)
 		return;
 	}
 
-	if (fsd->mod->send_upload_reply)
-		fsd->mod->send_upload_reply(fsd);
+	if (fsd->mod->finalize)
+		fsd->mod->finalize(fsd, 1);
 
 	return;
 }
@@ -284,6 +341,7 @@ static void upload(struct evhttp_request *request, void *arg)
 static int up_mount(struct ahttpd_mountpoint *mpoint)
 {
 	struct upfs_data *fsd = mpoint->fsdata;
+
 	fsd->mpoint = mpoint;
 
 	const char *modname = json_array_find_string(mpoint->props, "mode");

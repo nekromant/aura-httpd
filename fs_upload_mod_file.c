@@ -13,6 +13,7 @@
 #include <aura-httpd/server.h>
 #include <aura-httpd/vfs.h>
 #include <aura-httpd/uploadfs.h>
+#include <aura-httpd/json.h>
 
 
 struct filemod_data {
@@ -105,26 +106,6 @@ static void file_handle_rq_headers(struct upfs_data *fsd)
 		uploadfs_upload_send_error(fsd, NULL);
 }
 
-static char *get_original_filename(char *cds_string)
-{
-	char *ret = malloc(strlen(cds_string));
-
-	if (!ret)
-		return NULL;
-
-	char tmp[] = "filename=\"";
-	char *pos = strstr(cds_string, tmp);
-	pos = &pos[strlen(tmp)];
-	int i = 0;
-	while ((*pos) && (*pos != '\"'))
-		ret[i++] = *pos++;
-	ret[i] = 0x0;
-	for (i = 0; i < strlen(ret); i++)
-		if (ret[i] == '/')
-			ret[i] = '_';
-
-	return ret;
-}
 
 static void file_handle_form_header(struct upfs_data *fsd, char *key, char *value)
 {
@@ -133,10 +114,11 @@ static void file_handle_form_header(struct upfs_data *fsd, char *key, char *valu
 	if (!fdata->original_filename)
 		return;
 	if (strcmp(key, "Content-Disposition") == 0) {
-		fdata->filename = get_original_filename(value);
-		if ((!fdata->filename) || (!(strlen(fdata->filename))))
+		fdata->filename = uploadfs_get_content_disposition_filename(value);
+		if ((!fdata->filename) || (!(strlen(fdata->filename)))) {
 			slog(0, SLOG_ERROR, "Failed to get filename from Content-Disposition header");
-		uploadfs_upload_send_error(fsd, NULL);
+			uploadfs_upload_send_error(fsd, NULL);
+		}
 	}
 }
 
@@ -149,8 +131,6 @@ static void file_handle_data(struct upfs_data *fsd, struct evbuffer_iovec *vec, 
 	char randname[32];
 	struct json_object *tmp;
 	struct json_object *fl = json_object_new_object();
-
-
 	if (!fl)
 		goto error;
 
@@ -187,13 +167,17 @@ error:
 	uploadfs_upload_send_error(fsd, NULL);
 }
 
-static void file_send_result(struct upfs_data *fsd)
+static void file_send_result(struct upfs_data *fsd, int ok)
 {
 	struct filemod_data *fdata = fsd->mod_data;
 
-	ahttpd_reply_with_json(fsd->request, fdata->reply);
-	json_object_put(fdata->reply);
-	fdata->reply = NULL;
+	if (ok)
+		ahttpd_reply_with_json(fsd->request, fdata->reply);
+
+	if (fdata->reply) {
+		json_object_put(fdata->reply);
+		fdata->reply = NULL;
+	}
 	return;
 }
 
@@ -204,7 +188,7 @@ static struct uploadfs_module filemod = {
 	.inbound_request_hook	= file_handle_rq_headers,
 	.handle_form_header	= file_handle_form_header,
 	.handle_data		= file_handle_data,
-	.send_upload_reply	= file_send_result,
+	.finalize		= file_send_result,
 };
 
 AHTTPD_UPLOADFS_MODULE(filemod);

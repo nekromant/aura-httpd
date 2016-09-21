@@ -42,9 +42,9 @@ static void debug_handle_data(struct upfs_data *fsd, struct evbuffer_iovec *vec,
 		uploadfs_upload_send_error(fsd, NULL);
 }
 
-static void debug_send_result(struct upfs_data *fsd)
+static void debug_send_result(struct upfs_data *fsd, int ok)
 {
-	printf("[UPLOAD_MOD_DEBUG] Sending result!\n");
+	printf("[UPLOAD_MOD_DEBUG] Upload %s\n", ok ? "succeded" : "failed");
 	ahttpd_reply_accepted(fsd->request, "/");
 	return;
 }
@@ -56,7 +56,7 @@ static struct uploadfs_module debugmod = {
 	.inbound_request_hook = debug_handle_rq_headers,
     .handle_form_header = debug_handle_form_header,
 	.handle_data = debug_handle_data,
-	.send_upload_reply = debug_send_result,
+	.finalize = debug_send_result,
 };
 
 AHTTPD_UPLOADFS_MODULE(debugmod);

@@ -27,11 +27,6 @@ int ahttpd_method_allowed(struct evhttp_request *request, enum evhttp_cmd_type t
 void ahttpd_redirect_cb(struct evhttp_request *request, void *arg);
 
 
-struct json_object *json_array_find(json_object *arr, char *k);
-const char *json_array_find_string(json_object *o, char *k);
-long json_array_find_number(json_object *o, char *k);
-bool json_array_find_boolean(json_object *o, char *k);
-
 void ahttpd_add_path(struct ahttpd_mountpoint *mpoint, const char *path,
 		     void (*cb)(struct evhttp_request *request, void *privParams), void *arg);
 

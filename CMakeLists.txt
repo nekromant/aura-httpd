@@ -25,6 +25,7 @@ SET(CORE_SRCS
   fs_upload_mod_debug.c
   fs_upload_mod_buffer.c
   fs_upload_mod_file.c
+  entity.c
 )
 
 find_package(PkgConfig)

@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <aura-httpd/server.h>
+#include <aura-httpd/json.h>
 #include <aura-httpd/vfs.h>
 
 struct staticfs_data {

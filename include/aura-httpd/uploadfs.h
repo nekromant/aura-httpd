@@ -15,7 +15,7 @@ struct uploadfs_module
 	void (*inbound_request_hook)(struct upfs_data *fsd);
 	void (*handle_form_header)(struct upfs_data *fsd, char *key, char *data);
 	void (*handle_data)(struct upfs_data *fsd, struct evbuffer_iovec *vec, int n);
-	void (*send_upload_reply)(struct upfs_data *fsd);
+	void (*finalize)(struct upfs_data *fsd, int ok);
 	struct list_head qentry;
 };
 
@@ -33,6 +33,7 @@ struct upfs_data {
 
 void uploadfs_register_module(struct uploadfs_module* mod);
 void uploadfs_upload_send_error(struct upfs_data *fsd, struct json_object *reply);
+char *uploadfs_get_content_disposition_filename(char *cds_string);
 
 int dump_iovec(FILE *fd, struct evbuffer_iovec *vec, int length);
 int dump_iovec_to_file(const char *path, struct evbuffer_iovec *vec, int length);

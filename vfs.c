@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <aura-httpd/vfs.h>
 #include <aura-httpd/server.h>
+#include <aura-httpd/json.h>
 
 static LIST_HEAD(fslist);
 
