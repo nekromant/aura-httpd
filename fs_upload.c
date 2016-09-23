@@ -57,33 +57,42 @@ static void sanitize_string(char *ret)
 
 static char *extract_key_value(char *key, char *cds_string)
 {
-	char *ret = malloc(strlen(cds_string));
-	if (!ret)
+	if ((!cds_string) || (!strlen(cds_string)))
 		return NULL;
+
 	char *tmp = alloca(strlen("key") + 8);
 	strcpy(tmp, key);
 	strcat(tmp, "=\"");
+
 	char *pos = strstr(cds_string, tmp);
+	if (!pos)
+		return NULL;
+
+	char *ret = malloc(strlen(cds_string));
+	if (!ret)
+		return NULL;
+
 	pos = &pos[strlen(tmp)];
 	int i = 0;
 	while ((*pos) && (*pos != '\"'))
 		ret[i++] = *pos++;
 	ret[i] = 0x0;
+
+	decode_html_entities_utf8(ret, NULL);
+	sanitize_string(ret);
 	return ret;
 }
+
 
 char *uploadfs_get_content_disposition_name(char *cds_string)
 {
 	char *ret = extract_key_value("name", cds_string);
-	sanitize_string(ret);
 	return ret;
 }
 
 char *uploadfs_get_content_disposition_filename(char *cds_string)
 {
 	char *ret = extract_key_value("filename", cds_string);
-	decode_html_entities_utf8(ret, NULL);
-	sanitize_string(ret);
 	return ret;
 }
 
@@ -182,7 +191,6 @@ int evbuffer_peek_realloc(struct evbuffer *buffer, ssize_t len, struct evbuffer_
 	return ret;
 }
 
-
 /*
  *      -1 - immediate break, no free(ln);
  *       0 - continue and free;
@@ -234,7 +242,6 @@ static int multipart_handle_next_file(struct upfs_data *fsd, struct evbuffer *in
 	while (1) {
 		size_t nread;
 		int ret;
-
 		char *ln = evbuffer_readln(in_evb, &nread, EVBUFFER_EOL_CRLF);
 		ret = handle_file_header_line(fsd, ln);
 		if (ret > 0)
@@ -362,7 +369,7 @@ static int up_mount(struct ahttpd_mountpoint *mpoint)
 		return -ENOMEM;
 
 	fsd->num_iovec = 4;
-	ahttpd_add_path(mpoint, "/aura_buffer", upload, mpoint);
+	ahttpd_add_path(mpoint, "/post", upload, mpoint);
 	return 0;
 }
 
@@ -375,7 +382,7 @@ static void up_unmount(struct ahttpd_mountpoint *mpoint)
 
 	free(fsd->iovec);
 
-	ahttpd_del_path(mpoint, "/aura_buffer");
+	ahttpd_del_path(mpoint, "/post");
 	return;
 }
 

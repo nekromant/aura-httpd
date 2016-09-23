@@ -5,3 +5,26 @@ fetch()
     echo "[!] Fetch $1"
     wget ${URL}$1 -o/dev/null -O/dev/null
 }
+
+download()
+{
+    wget ${URL}$1 -O$2
+}
+
+upload_shit()
+{
+    dd if=/dev/urandom of=/tmp/shit.bin bs=1024 count=8
+    curl \
+        -F "userid=1" \
+        -F "filename=upload.bin" \
+        -F "file=@/tmp/shit.bin" \
+        ${URL}/${1}/post
+}
+
+upload_shit()
+{
+    dd if=/dev/urandom of=/tmp/shit.bin bs=1024 count=8
+    curl \
+        -F 'file=@/tmp/shit.bin;name="crap";filename="supercrap.bin"' \
+        ${URL}/${1}/post
+}
