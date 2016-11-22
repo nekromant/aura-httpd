@@ -5,7 +5,6 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <http_parser.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
