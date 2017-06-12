@@ -116,7 +116,7 @@ static void rq_download_buffer(struct evhttp_request *request, void *arg)
 	}
 	/* TODO: Keep track of valid data length in aura buffer */
 	aura_buffer_rewind(buf->buf);
-	const char *data = aura_buffer_get_bin(buf->buf, aura_buffer_length(buf->buf));
+	const char *data = aura_buffer_get_bin(buf->buf, aura_buffer_payload_length(buf->buf));
 	evbuffer_add(buffer, data, buf->buf->size);
 	evhttp_send_reply(request, HTTP_OK, "OK", buffer);
 	evbuffer_free(buffer);

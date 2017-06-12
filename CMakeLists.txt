@@ -25,6 +25,8 @@ SET(CORE_SRCS
   fs_upload_mod_debug.c
   fs_upload_mod_buffer.c
   fs_upload_mod_file.c
+  fs_v4l2.c
+  v4l2_read.c
   entity.c
 )
 

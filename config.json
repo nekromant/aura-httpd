@@ -35,5 +35,25 @@
 		   "index": "index.html",
 		   "dirlist": "html",
 		 },
+         {
+             "type": "v4l2",
+             "mountpoint": "/camera/",
+			 "devices" : [
+				 	{
+					 "device": "/dev/video0",
+		   			 "input": 0,
+		   			 "iomethod": "mmap",
+		   			 "width": 720,
+		   			 "height": 576,
+					},
+					{
+					 "device": "/dev/video0",
+					 "input": 1,
+					 "iomethod": "mmap",
+					 "width": 720,
+					 "height": 576,
+					},
+			 ],
+         }
 	]
 }
